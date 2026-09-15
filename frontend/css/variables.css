@@ -17,6 +17,49 @@
   --teal: #008080;                /* Safe Sovereign Teal */
   --teal-bg: #E6F4F4;             /* Safe teal container tint */
 
+  /* Reference Design Tokens (Phase 10B) */
+  --color-navy: #1A3A5C;
+  --color-navy-dark: #0F2640;
+  --color-navy-light: #2A5A8C;
+  --color-sky: #4A90D9;
+  --color-sky-light: #6BAAE8;
+  --color-teal: #008080;
+  --color-teal-soft: #5DA9A4;
+  --color-teal-light: #E6F5F3;
+
+  --color-white: #FFFFFF;
+  --color-bg: #F5F7FA;
+  --color-bg-alt: #EDF2F7;
+  --color-border: #DCE5EC;
+  --color-border-light: #E8EFF5;
+  --color-gray-100: #F7FAFC;
+  --color-gray-200: #EDF2F7;
+  --color-gray-300: #E2E8F0;
+  --color-gray-400: #CBD5E0;
+  --color-gray-500: #A0AEC0;
+  --color-gray-600: #6B7280;
+  --color-gray-700: #4A5568;
+  --color-gray-800: #2D3748;
+  --color-ink: #1F2937;
+
+  --color-success: #10B981;
+  --color-success-bg: #ECFDF5;
+  --color-success-border: #A7F3D0;
+  --color-warning: #F59E0B;
+  --color-warning-bg: #FFFBEB;
+  --color-warning-border: #FDE68A;
+  --color-critical: #EF4444;
+  --color-critical-bg: #FEF2F2;
+  --color-critical-border: #FECACA;
+  --color-info: #3B82F6;
+  --color-info-bg: #EFF6FF;
+
+  --topbar-height: 64px;
+  --patient-max-width: 760px;
+  --doctor-max-width: 1400px;
+  --touch-target: 44px;
+  --touch-target-lg: 56px;
+
   /* Surfaces & Canvas (White content surfaces on soft light-gray canvas) */
   --background: #F5F7FA;          /* Soft light-gray kiosk canvas */
   --surface: #FFFFFF;             /* Pure white content card */

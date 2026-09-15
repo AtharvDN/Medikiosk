@@ -22,6 +22,7 @@ class DocumentService {
           mimeType: fileInfo.mimeType || (fileInfo.type === 'image' ? 'image/jpeg' : 'application/pdf'),
           fileSizeBytes: fileInfo.size || 1048576,
           documentType: fileInfo.type || 'PRESCRIPTION',
+          ocrMode: fileInfo.ocrMode || 'ANALYZE',
         });
 
         onProgress('organizingDoc');

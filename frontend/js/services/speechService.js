@@ -294,13 +294,16 @@ class SpeechService {
       this.timer = null;
     }
     if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+      this.status = 'PROCESSING';
       try {
         this.mediaRecorder.stop();
       } catch (e) {
         console.warn('[Speech] Error stopping mediaRecorder:', e);
+        this.status = 'IDLE';
       }
+    } else {
+      this.status = 'IDLE';
     }
-    this.status = 'IDLE';
   }
 
   getDiagnostics() {

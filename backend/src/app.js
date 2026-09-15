@@ -11,6 +11,7 @@ import { voiceRouter } from './routes/voice.routes.js';
 import { hospitalRouter } from './routes/hospital.routes.js';
 import { departmentRouter } from './routes/department.routes.js';
 import { encounterRouter } from './routes/encounter.routes.js';
+import { documentRouter } from './routes/document.routes.js';
 import { config } from './config/env.js';
 
 export const app = express();
@@ -53,6 +54,7 @@ app.use('/api/departments', departmentRouter);
 app.use('/api/encounters', encounterRouter);
 app.use('/api/doctor', doctorRouter);
 app.use('/api/clinical', clinicalRouter);
+app.use('/api/documents', documentRouter);
 app.use('/api/voice', voiceRouter);
 
 // Centralized Error Handling

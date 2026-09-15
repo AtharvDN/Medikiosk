@@ -478,7 +478,25 @@ export class NeuralTTSProvider {
     this.lastDiagnostics = null;
   }
 
-  async speak(text, language = 'mr', options = {}) {
+  async speak(arg1, arg2 = 'mr', arg3 = {}) {
+    let text;
+    let language = 'mr';
+    let options = {};
+
+    if (typeof arg1 === 'object' && arg1 !== null) {
+      text = arg1.text;
+      language = arg1.language || arg1.lang || 'mr';
+      options = arg1.options || arg1;
+    } else {
+      text = arg1;
+      language = arg2 || 'mr';
+      options = arg3 || {};
+    }
+
+    if (!text || typeof text !== 'string') {
+      return { success: false, reason: 'empty_text' };
+    }
+
     const requestId = options.requestId || `tts-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     this.activeRequestId = requestId;
 
@@ -635,7 +653,21 @@ class TTSService {
   /**
    * Main speech entrypoint (Section 18)
    */
-  async speak({ text, language = 'mr', options = {} }) {
+  async speak(arg1, arg2 = 'mr', arg3 = {}) {
+    let text;
+    let language = 'mr';
+    let options = {};
+
+    if (typeof arg1 === 'object' && arg1 !== null) {
+      text = arg1.text;
+      language = arg1.language || arg1.lang || 'mr';
+      options = arg1.options || arg1;
+    } else {
+      text = arg1;
+      language = arg2 || 'mr';
+      options = arg3 || {};
+    }
+
     if (!text) return { success: false, reason: 'empty_text' };
 
     this.isSpeaking = true;

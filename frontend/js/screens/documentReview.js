@@ -10,6 +10,7 @@ import { documentService } from '../services/documentService.js';
 import { MOCK_PRESET_DOCUMENTS } from '../mock/mockDocuments.js';
 
 let selectedDocType = 'PRESCRIPTION';
+let selectedOcrMode = 'ANALYZE';
 let isProcessing = false;
 let processingStage = '';
 let uploadError = null;
@@ -186,6 +187,21 @@ export function renderDocumentReviewScreen() {
         </div>
       </div>
 
+      <!-- OCR Mode Option: Full OCR vs Original Only -->
+      <div style="margin-bottom: 1.25rem;">
+        <div style="font-size: var(--font-size-xs); font-weight: 700; color: var(--muted-text); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5rem;">
+          Document Processing Option:
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button id="btn-mode-analyze" type="button" class="btn ${selectedOcrMode === 'ANALYZE' ? 'btn-primary' : 'btn-secondary'}" style="padding: 6px 14px; font-size: 13px; border-radius: var(--radius-md);">
+            🔍 Upload & Analyze (OCR Extraction)
+          </button>
+          <button id="btn-mode-original" type="button" class="btn ${selectedOcrMode === 'ORIGINAL_ONLY' ? 'btn-primary' : 'btn-secondary'}" style="padding: 6px 14px; font-size: 13px; border-radius: var(--radius-md);">
+            📎 Upload Original Only (Bypass OCR)
+          </button>
+        </div>
+      </div>
+
       <!-- Kiosk Healthcare Scanning Dropzone -->
       <div id="dropzone-upload" class="upload-dropzone">
         <div style="font-size: 3rem; margin-bottom: 0.5rem; color: var(--primary);" aria-hidden="true">📷</div>
@@ -193,7 +209,7 @@ export function renderDocumentReviewScreen() {
           ${t('docUploadPrompt', lang)}
         </div>
         <div style="font-size: var(--font-size-xs); color: var(--muted-text); margin-top: 0.35rem;">
-          Hold prescription or report in front of kiosk scanner or tap to select image (JPG, PNG, PDF up to 15 MB)
+          ${selectedOcrMode === 'ORIGINAL_ONLY' ? 'Original document will be stored safely without running text recognition' : 'Hold prescription or report in front of kiosk scanner or tap to select image (JPG, PNG, PDF up to 15 MB)'}
         </div>
       </div>
       <input type="file" id="file-input" style="display: none;" accept="image/*,application/pdf" capture="environment" />
@@ -249,6 +265,16 @@ export function renderDocumentReviewScreen() {
         });
       });
 
+      // OCR Mode Toggle
+      document.getElementById('btn-mode-analyze')?.addEventListener('click', () => {
+        selectedOcrMode = 'ANALYZE';
+        router.renderCurrentScreen();
+      });
+      document.getElementById('btn-mode-original')?.addEventListener('click', () => {
+        selectedOcrMode = 'ORIGINAL_ONLY';
+        router.renderCurrentScreen();
+      });
+
       document.getElementById('btn-dismiss-error')?.addEventListener('click', () => {
         uploadError = null;
         router.renderCurrentScreen();
@@ -274,7 +300,7 @@ export function renderDocumentReviewScreen() {
           reader.onloadend = async () => {
             const base64 = reader.result ? reader.result.split(',')[1] || '' : '';
             const processed = await documentService.processDocument(
-              { name: file.name, type: selectedDocType, size: file.size, mimeType: file.type, base64 },
+              { name: file.name, type: selectedDocType, size: file.size, mimeType: file.type, base64, ocrMode: selectedOcrMode },
               (stage) => {
                 processingStage = stage;
                 router.renderCurrentScreen();

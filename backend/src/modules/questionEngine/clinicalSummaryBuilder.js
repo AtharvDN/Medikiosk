@@ -647,7 +647,8 @@ export function buildCanonicalClinicalSummary(sessionState, documents = [], opti
   const hasAyushFacts = Object.keys(collectedFacts).some((k) => k.startsWith('ayush.'));
   const hasAyushResponses = responses.some((r) => r.questionId?.startsWith('q.ayush.'));
 
-  if (isAyushSession || hasAyushFacts || hasAyushResponses) {
+  // STRICT: AYUSH data must exist ONLY when current encounter/session is actually AYUSH
+  if (isAyushSession) {
     const parseAyushParam = (questionId, factConcept, factAttr, paramName) => {
       const resp = responses.find((r) => r.questionId === questionId);
       const fact = collectedFacts[`${factConcept}.${factAttr}`] ||

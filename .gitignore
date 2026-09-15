@@ -53,6 +53,8 @@ out/
 # Local storage and user uploads
 storage/uploads/*
 !storage/uploads/.gitkeep
+backend/uploads/
+uploads/
 temp/
 tmp/
 scratch/

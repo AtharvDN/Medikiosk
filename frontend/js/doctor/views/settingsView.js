@@ -4,6 +4,7 @@
 
 import { doctorState } from '../doctorState.js';
 import { doctorApi } from '../doctorApi.js';
+import { icons } from '../doctorIcons.js';
 
 export function renderDoctorSettingsView() {
   const doc = doctorState.doctor || {
@@ -15,8 +16,8 @@ export function renderDoctorSettingsView() {
 
   const html = `
     <div style="margin-bottom: 1.5rem;">
-      <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--doc-text-main); margin-bottom: 0.25rem;">
-        ⚙️ Physician Profile & Clinical Preferences
+      <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--doc-text-main); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 8px;">
+        ${icons.settings(22, '#2563EB')} Physician Profile & Clinical Preferences
       </h2>
       <p style="font-size: 0.85rem; color: var(--doc-text-muted);">
         Configure your workstation alerts, display preferences, and view authenticated clinician credentials.
@@ -26,8 +27,8 @@ export function renderDoctorSettingsView() {
     <div style="max-width: 800px; display: flex; flex-direction: column; gap: 1.5rem;">
       <!-- Profile Card -->
       <div class="doc-table-card" style="padding: 1.5rem;">
-        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--doc-text-main);">
-          👨‍⚕️ Authenticated Physician Profile
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--doc-text-main); display: flex; align-items: center; gap: 8px;">
+          ${icons.user(20, '#2563EB')} Authenticated Physician Profile
         </h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
           <div>
@@ -51,8 +52,8 @@ export function renderDoctorSettingsView() {
 
       <!-- Clinical Preferences Form -->
       <div class="doc-table-card" style="padding: 1.5rem;">
-        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--doc-text-main);">
-          🎛️ Intake & Alert Preferences
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--doc-text-main); display: flex; align-items: center; gap: 8px;">
+          ${icons.settings(20, '#2563EB')} Intake & Alert Preferences
         </h3>
 
         <form id="doc-settings-form" style="display: flex; flex-direction: column; gap: 1.25rem;">

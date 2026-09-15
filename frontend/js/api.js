@@ -307,4 +307,94 @@ export const api = {
       return { success: false, error: error.message };
     }
   },
+
+  // ----------------------------------------------------
+  // Phase 10B: Longitudinal Patient Record & Timeline
+  // ----------------------------------------------------
+  async getPatientDashboard(patientId) {
+    try {
+      const response = await fetch(`${API_BASE}/patients/${patientId}/dashboard`);
+      return await response.json();
+    } catch (error) {
+      console.warn('[API] Failed to get patient dashboard:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async getPatientHistory(patientId) {
+    try {
+      const response = await fetch(`${API_BASE}/patients/${patientId}/history`);
+      return await response.json();
+    } catch (error) {
+      console.warn('[API] Failed to get patient history:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async getPatientDocuments(patientId) {
+    try {
+      const response = await fetch(`${API_BASE}/patients/${patientId}/documents`);
+      return await response.json();
+    } catch (error) {
+      console.warn('[API] Failed to get patient documents:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async getPatientSummary(patientId) {
+    try {
+      const response = await fetch(`${API_BASE}/patients/${patientId}/summary`);
+      return await response.json();
+    } catch (error) {
+      console.warn('[API] Failed to get patient summary:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async getPatientTimeline(patientId) {
+    try {
+      const response = await fetch(`${API_BASE}/patients/${patientId}/timeline`);
+      return await response.json();
+    } catch (error) {
+      console.warn('[API] Failed to get patient timeline:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async getPatientProfile(patientId) {
+    try {
+      const response = await fetch(`${API_BASE}/patients/${patientId}/profile`);
+      return await response.json();
+    } catch (error) {
+      console.warn('[API] Failed to get patient profile:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async cancelEncounter(id) {
+    try {
+      const response = await fetch(`${API_BASE}/encounters/${id}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      return await response.json();
+    } catch (error) {
+      console.warn('[API] Failed to cancel encounter:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async recordPatientVitals(patientId, vitalsData) {
+    try {
+      const response = await fetch(`${API_BASE}/patients/${patientId}/vitals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: 'PATIENT', ...vitalsData }),
+      });
+      return await response.json();
+    } catch (error) {
+      console.warn('[API] Failed to record patient vitals:', error);
+      return { success: false, error: error.message };
+    }
+  },
 };

@@ -7,12 +7,13 @@
 
 import { doctorApi } from '../doctorApi.js';
 import { openPatientWorkspace } from './dashboardView.js';
+import { icons } from '../doctorIcons.js';
 
 export function renderDoctorAlertsView() {
   const html = `
     <div style="margin-bottom: 1.5rem;">
-      <h2 style="font-size: 1.4rem; font-weight: 800; color: #dc2626; margin-bottom: 0.25rem;">
-        🚨 Priority Clinical Alerts & Red-Flags
+      <h2 style="font-size: 1.4rem; font-weight: 800; color: #dc2626; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 8px;">
+        ${icons.alert(24, '#dc2626')} Priority Clinical Alerts & Red-Flags
       </h2>
       <p style="font-size: 0.85rem; color: var(--doc-text-muted);">
         Immediate physician attention required for patients reporting high-risk clinical features during kiosk intake.
@@ -46,7 +47,7 @@ export function renderDoctorAlertsView() {
       if (!alerts || alerts.length === 0) {
         container.innerHTML = `
           <div class="doc-state-container">
-            <div class="doc-state-icon">🛡️</div>
+            <div class="doc-state-icon" style="display:flex;align-items:center;justify-content:center;">${icons.check(28, '#16A34A')}</div>
             <div class="doc-state-title">No Active Red-Flag Alerts</div>
             <div class="doc-state-desc">All intake sessions are currently within standard triage limits. No emergency triggers detected.</div>
           </div>
@@ -64,7 +65,7 @@ export function renderDoctorAlertsView() {
 
               return `
                 <div class="doc-critical-banner" style="align-items: center;">
-                  <div class="doc-critical-icon">🚨</div>
+                  <div class="doc-critical-icon" style="display:flex;align-items:center;justify-content:center;">${icons.alert(24, '#DC2626')}</div>
                   <div style="flex-grow: 1;">
                     <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
                       <span class="doc-token-badge" style="background:#fee2e2; border-color:#fca5a5; color:#991b1b;">
@@ -94,7 +95,7 @@ export function renderDoctorAlertsView() {
 
                   <div>
                     <button class="doc-btn-open doc-open-workspace-btn" data-session-id="${alert.sessionId}" style="background:#dc2626; padding: 0.65rem 1.25rem; font-size: 0.9rem;">
-                      Open Workspace ➔
+                      Open Workspace
                     </button>
                   </div>
                 </div>
@@ -113,7 +114,7 @@ export function renderDoctorAlertsView() {
     } catch (err) {
       container.innerHTML = `
         <div class="doc-state-container">
-          <div class="doc-state-icon">⚠️</div>
+          <div class="doc-state-icon" style="display:flex;align-items:center;justify-content:center;">${icons.alert(28, '#D97706')}</div>
           <div class="doc-state-title">Server Unavailable</div>
           <div class="doc-state-desc">${err.message}</div>
         </div>

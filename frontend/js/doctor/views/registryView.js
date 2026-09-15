@@ -4,13 +4,14 @@
 
 import { doctorApi } from '../doctorApi.js';
 import { openPatientWorkspace } from './dashboardView.js';
+import { icons } from '../doctorIcons.js';
 
 export function renderDoctorRegistryView() {
   const html = `
     <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
       <div>
-        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--doc-text-main); margin-bottom: 0.25rem;">
-          👥 Patients Registry & OPD Directory
+        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--doc-text-main); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 8px;">
+          ${icons.users(22, '#2563EB')} Patients Registry & OPD Directory
         </h2>
         <p style="font-size: 0.85rem; color: var(--doc-text-muted);">
           Searchable clinical archive of all MediKiosk intake sessions, encounters, and verified records.
@@ -28,8 +29,8 @@ export function renderDoctorRegistryView() {
 
     <!-- Search Input Inside Registry -->
     <div style="margin-bottom: 1.25rem; display: flex; gap: 1rem;">
-      <div class="doc-search-wrapper" style="width: 100%; max-width: 500px; background: #ffffff;">
-        <span style="font-size: 1.1rem; margin-right: 0.5rem; color: var(--doc-text-muted);">🔍</span>
+      <div class="doc-search-wrapper" style="width: 100%; max-width: 500px; background: #ffffff; display: flex; align-items: center; padding-left: 10px;">
+        <span style="display: flex; align-items: center; margin-right: 0.5rem; color: var(--doc-text-muted);">${icons.search(18, '#64748B')}</span>
         <input
           type="text"
           id="doc-registry-search-input"
@@ -90,7 +91,7 @@ export function renderDoctorRegistryView() {
       if (!patients || patients.length === 0) {
         container.innerHTML = `
           <div class="doc-state-container">
-            <div class="doc-state-icon">🔍</div>
+            <div class="doc-state-icon" style="display:flex;align-items:center;justify-content:center;">${icons.search(28, '#94A3B8')}</div>
             <div class="doc-state-title">No Matching Records Found</div>
             <div class="doc-state-desc">Try adjusting your search terms or filter selection.</div>
           </div>
@@ -121,8 +122,8 @@ export function renderDoctorRegistryView() {
 
                 const opdBadge =
                   p.opdMode === 'AYUSH'
-                    ? '<span class="doc-opd-badge ayush">🌿 AYUSH</span>'
-                    : '<span class="doc-opd-badge general">🏥 General</span>';
+                    ? '<span class="doc-opd-badge ayush">AYUSH</span>'
+                    : '<span class="doc-opd-badge general">General</span>';
 
                 return `
                   <tr>
@@ -138,7 +139,7 @@ export function renderDoctorRegistryView() {
                     <td><strong>${p.chiefComplaint}</strong></td>
                     <td>
                       <span class="doc-triage-badge ${triageClass}">
-                        ${p.triageTier === 'CRITICAL' ? '🚨 ' : ''}${p.triageTier}
+                        ${p.triageTier}
                       </span>
                     </td>
                     <td>
@@ -148,7 +149,7 @@ export function renderDoctorRegistryView() {
                     </td>
                     <td style="text-align: right;">
                       <button class="doc-btn-open doc-open-workspace-btn" data-session-id="${p.sessionId}">
-                        Open Workspace ➔
+                        Open Workspace
                       </button>
                     </td>
                   </tr>
@@ -168,7 +169,7 @@ export function renderDoctorRegistryView() {
     } catch (err) {
       container.innerHTML = `
         <div class="doc-state-container">
-          <div class="doc-state-icon">⚠️</div>
+          <div class="doc-state-icon" style="display:flex;align-items:center;justify-content:center;">${icons.alert(28, '#D97706')}</div>
           <div class="doc-state-title">Server Unavailable</div>
           <div class="doc-state-desc">${err.message}</div>
         </div>

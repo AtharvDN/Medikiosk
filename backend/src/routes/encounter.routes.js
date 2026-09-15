@@ -5,3 +5,4 @@ export const encounterRouter = Router();
 
 encounterRouter.post('/', encounterController.createEncounter);
 encounterRouter.get('/:id', encounterController.getEncounter);
+encounterRouter.post('/:id/cancel', encounterController.cancelEncounter);

@@ -67,13 +67,14 @@ def transcribe_audio_payload(audio_bytes: bytes, language: str = "mr") -> dict:
         with open(in_path, "wb") as f:
             f.write(audio_bytes)
 
+        # High quality voice normalization (avoids loudnorm distorting short speech < 3s)
         cmd = [
             FFMPEG_BIN,
             "-y",
             "-i", in_path,
             "-ar", "16000",
             "-ac", "1",
-            "-af", "loudnorm=I=-16:TP=-1.5:LRA=11",
+            "-af", "volume=1.8",
             "-f", "wav",
             wav_path
         ]
@@ -90,6 +91,7 @@ def transcribe_audio_payload(audio_bytes: bytes, language: str = "mr") -> dict:
             ]
             conv_fallback = subprocess.run(cmd_fallback, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if conv_fallback.returncode != 0:
+                print(f"[ASR Service] FFmpeg error: {conv_fallback.stderr.decode('utf-8', errors='ignore')[:200]}")
                 return {
                     "success": False,
                     "error": "AUDIO_CONVERSION_ERROR",
@@ -98,40 +100,47 @@ def transcribe_audio_payload(audio_bytes: bytes, language: str = "mr") -> dict:
                 }
 
         recognizer = sr.Recognizer()
-        recognizer.energy_threshold = 280
+        recognizer.energy_threshold = 120
         recognizer.dynamic_energy_threshold = True
-        recognizer.pause_threshold = 0.8
-        recognizer.non_speaking_duration = 0.4
+        recognizer.pause_threshold = 0.5
+        recognizer.non_speaking_duration = 0.2
         target_locale = ASR_LOCALES.get(language, "en-IN")
 
         with sr.AudioFile(wav_path) as source:
             audio_data = recognizer.record(source)
 
-        try:
-            transcript = recognizer.recognize_google(audio_data, language=target_locale)
-            clean_transcript = transcript.strip()
-            print(f"[ASR Service] Recognized ({target_locale}): {clean_transcript}")
-            return {
-                "success": True,
-                "transcript": clean_transcript,
-                "language": language,
-                "confidence": 0.95,
-                "provider": "indicconformer-runtime",
-            }
-        except sr.UnknownValueError:
-            return {
-                "success": False,
-                "error": "SPEECH_UNRECOGNIZED",
-                "message": "Could not understand spoken audio. Please speak clearly or use screen touch.",
-                "transcript": "",
-            }
-        except sr.RequestError as e:
-            return {
-                "success": False,
-                "error": "ASR_SERVICE_UNAVAILABLE",
-                "message": f"Speech recognition service error: {e}",
-                "transcript": "",
-            }
+        # Multi-locale cascaded recognition (tries requested language first, then other vernaculars)
+        locales_to_try = [target_locale] + [loc for loc in ["mr-IN", "hi-IN", "en-IN"] if loc != target_locale]
+        for loc in locales_to_try:
+            try:
+                transcript = recognizer.recognize_google(audio_data, language=loc)
+                if transcript and transcript.strip():
+                    clean_transcript = transcript.strip()
+                    print(f"[ASR Service] Recognized ({loc}): {clean_transcript}")
+                    return {
+                        "success": True,
+                        "transcript": clean_transcript,
+                        "language": language,
+                        "confidence": 0.95,
+                        "provider": "indicconformer-runtime",
+                    }
+            except sr.UnknownValueError:
+                continue
+            except sr.RequestError as e:
+                print(f"[ASR Service] Google ASR API request error for {loc}: {e}")
+                return {
+                    "success": False,
+                    "error": "ASR_SERVICE_UNAVAILABLE",
+                    "message": f"Speech recognition service error: {e}",
+                    "transcript": "",
+                }
+
+        return {
+            "success": False,
+            "error": "SPEECH_UNRECOGNIZED",
+            "message": "Could not understand spoken audio. Please speak clearly or use screen touch.",
+            "transcript": "",
+        }
     finally:
         try:
             if os.path.exists(in_path): os.remove(in_path)
@@ -218,7 +227,7 @@ class ASRHandler(BaseHTTPRequestHandler):
             res["requestId"] = request_id
             res["sessionId"] = session_id
 
-            status_code = 200 if res.get("success") else 422
+            status_code = 200
             self._send_json(status_code, res)
         else:
             self._send_json(404, {"error": "Not Found"})

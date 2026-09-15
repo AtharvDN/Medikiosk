@@ -21,6 +21,7 @@ import { renderDoctorRegistryView } from './views/registryView.js';
 import { renderDoctorWorkspaceView } from './views/workspaceView.js';
 import { renderDoctorReportsView } from './views/reportsView.js';
 import { renderDoctorSettingsView } from './views/settingsView.js';
+import { icons } from './doctorIcons.js';
 
 export function initDoctorShell(containerEl) {
   if (!containerEl) return;
@@ -49,7 +50,9 @@ export function initDoctorShell(containerEl) {
         <!-- 1. Left Navigation Sidebar -->
         <aside class="doc-sidebar">
           <div class="doc-sidebar-header">
-            <div class="doc-logo-badge">🩺</div>
+            <div class="doc-logo-badge" style="display:flex;align-items:center;justify-content:center;">
+              ${icons.stethoscope(22, '#2563EB')}
+            </div>
             <div>
               <div class="doc-brand-title">MediKiosk</div>
               <div class="doc-brand-sub">Clinical Workstation</div>
@@ -59,28 +62,28 @@ export function initDoctorShell(containerEl) {
           <ul class="doc-nav-list">
             <li class="doc-nav-item ${currentTab === 'dashboard' ? 'active' : ''}" data-tab="dashboard">
               <div class="doc-nav-label-wrap">
-                <span class="doc-nav-icon">📊</span>
+                <span class="doc-nav-icon" style="display:inline-flex;align-items:center;">${icons.dashboard(18)}</span>
                 <span>Doctor Dashboard</span>
               </div>
             </li>
 
             <li class="doc-nav-item ${currentTab === 'queue' ? 'active' : ''}" data-tab="queue">
               <div class="doc-nav-label-wrap">
-                <span class="doc-nav-icon">📋</span>
+                <span class="doc-nav-icon" style="display:inline-flex;align-items:center;">${icons.queue(18)}</span>
                 <span>Live OPD Queue</span>
               </div>
             </li>
 
             <li class="doc-nav-item ${currentTab === 'alerts' ? 'active' : ''}" data-tab="alerts">
               <div class="doc-nav-label-wrap">
-                <span class="doc-nav-icon">🚨</span>
+                <span class="doc-nav-icon" style="display:inline-flex;align-items:center;">${icons.alert(18)}</span>
                 <span>Priority Clinical Alerts</span>
               </div>
             </li>
 
             <li class="doc-nav-item ${currentTab === 'registry' ? 'active' : ''}" data-tab="registry">
               <div class="doc-nav-label-wrap">
-                <span class="doc-nav-icon">👥</span>
+                <span class="doc-nav-icon" style="display:inline-flex;align-items:center;">${icons.users(18)}</span>
                 <span>Patients Registry</span>
               </div>
             </li>
@@ -90,7 +93,7 @@ export function initDoctorShell(containerEl) {
                 ? `
               <li class="doc-nav-item active" data-tab="workspace" style="border-left: 3px solid #60a5fa;">
                 <div class="doc-nav-label-wrap">
-                  <span class="doc-nav-icon">👤</span>
+                  <span class="doc-nav-icon" style="display:inline-flex;align-items:center;">${icons.user(18)}</span>
                   <span>Active Workspace</span>
                 </div>
                 <span class="doc-badge-pill" style="background:#2563eb; color:#fff;">OPEN</span>
@@ -101,14 +104,14 @@ export function initDoctorShell(containerEl) {
 
             <li class="doc-nav-item ${currentTab === 'reports' ? 'active' : ''}" data-tab="reports">
               <div class="doc-nav-label-wrap">
-                <span class="doc-nav-icon">📈</span>
+                <span class="doc-nav-icon" style="display:inline-flex;align-items:center;">${icons.reports(18)}</span>
                 <span>Reports & Analytics</span>
               </div>
             </li>
 
             <li class="doc-nav-item ${currentTab === 'settings' ? 'active' : ''}" data-tab="settings">
               <div class="doc-nav-label-wrap">
-                <span class="doc-nav-icon">⚙️</span>
+                <span class="doc-nav-icon" style="display:inline-flex;align-items:center;">${icons.settings(18)}</span>
                 <span>Settings</span>
               </div>
             </li>
@@ -125,8 +128,8 @@ export function initDoctorShell(containerEl) {
                 <div class="doc-user-role">${doc.department}</div>
               </div>
             </div>
-            <button id="doc-sidebar-logout-btn" class="doc-logout-btn" title="Sign Out">
-              🚪
+            <button id="doc-sidebar-logout-btn" class="doc-logout-btn" title="Sign Out" style="display:inline-flex;align-items:center;justify-content:center;">
+              ${icons.logout(18)}
             </button>
           </div>
         </aside>
@@ -136,7 +139,9 @@ export function initDoctorShell(containerEl) {
           <!-- Top Bar -->
           <header class="doc-topbar">
             <div class="doc-search-wrapper">
-              <span style="color:var(--doc-text-muted); margin-right:0.4rem;">🔍</span>
+              <span style="color:var(--doc-text-muted); margin-right:0.4rem; display:inline-flex; align-items:center;">
+                ${icons.search(16)}
+              </span>
               <input
                 type="text"
                 id="doc-topbar-search-input"
@@ -147,16 +152,16 @@ export function initDoctorShell(containerEl) {
 
             <div class="doc-topbar-actions">
               <div class="doc-hospital-tag">
-                <span>🏥</span>
-                <span>${doc.hospital} • OPD-3</span>
+                <span style="display:inline-flex;align-items:center;">${icons.document(14)}</span>
+                <span>${doc.hospital}</span>
               </div>
 
               <button id="doc-contrast-toggle-btn" class="doc-action-btn" title="Toggle Contrast Mode">
-                🌓 Contrast
+                Contrast
               </button>
 
               <button id="doc-switch-kiosk-btn" class="doc-kiosk-switch-btn" title="Switch to Patient Intake Kiosk">
-                📱 Patient Kiosk
+                Patient Kiosk
               </button>
             </div>
           </header>

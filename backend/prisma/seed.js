@@ -147,7 +147,7 @@ async function main() {
       name: 'Dr. Priya Deshmukh',
       specialization: 'General Medicine',
       qualification: 'MBBS, MD (General Medicine)',
-      registrationNo: 'MMC-2018-0914',
+      registrationNo: 'DOC-8942',
       roomNumber: 'OPD Room 3',
       isActive: true,
     },
@@ -158,14 +158,14 @@ async function main() {
       name: 'Dr. Priya Deshmukh',
       specialization: 'General Medicine',
       qualification: 'MBBS, MD (General Medicine)',
-      registrationNo: 'MMC-2018-0914',
+      registrationNo: 'DOC-8942',
       roomNumber: 'OPD Room 3',
       isActive: true,
     },
   });
   console.log('[Seed] Doctor 1 ready:', doctor1.name);
 
-  // 4. Doctor 2: Dr. Rajesh Joshi (AYUSH / Kayachikitsa)
+  // 4. Doctor 2: Dr. Rajendra Joshi (AYUSH / Kayachikitsa)
   const doctorUser2 = await prisma.user.upsert({
     where: { email: 'ayush.doctor@medikiosk.local' },
     update: {},
@@ -181,10 +181,10 @@ async function main() {
     update: {
       hospitalId: hospital.id,
       departmentId: ayushDept.id,
-      name: 'Dr. Rajesh Joshi',
+      name: 'Dr. Rajendra Joshi',
       specialization: 'Kayachikitsa / Ayurveda',
       qualification: 'BAMS, MD (Ayurveda - Kayachikitsa)',
-      registrationNo: 'BCAM-2015-4421',
+      registrationNo: 'DOC-AYUSH-01',
       roomNumber: 'OPD Room 7',
       isActive: true,
     },
@@ -192,17 +192,91 @@ async function main() {
       userId: doctorUser2.id,
       hospitalId: hospital.id,
       departmentId: ayushDept.id,
-      name: 'Dr. Rajesh Joshi',
+      name: 'Dr. Rajendra Joshi',
       specialization: 'Kayachikitsa / Ayurveda',
       qualification: 'BAMS, MD (Ayurveda - Kayachikitsa)',
-      registrationNo: 'BCAM-2015-4421',
+      registrationNo: 'DOC-AYUSH-01',
       roomNumber: 'OPD Room 7',
       isActive: true,
     },
   });
   console.log('[Seed] Doctor 2 ready:', doctor2.name);
 
-  // 5. Admin User
+  // 5. Doctor 3: Dr. Neha Kulkarni (Pediatrics)
+  const doctorUser3 = await prisma.user.upsert({
+    where: { email: 'pedi.doctor@medikiosk.local' },
+    update: {},
+    create: {
+      email: 'pedi.doctor@medikiosk.local',
+      passwordHash,
+      role: 'DOCTOR',
+    },
+  });
+
+  const doctor3 = await prisma.doctor.upsert({
+    where: { userId: doctorUser3.id },
+    update: {
+      hospitalId: hospital.id,
+      departmentId: pediatricsDept.id,
+      name: 'Dr. Neha Kulkarni',
+      specialization: 'Pediatrics',
+      qualification: 'MBBS, MD (Pediatrics), DCH',
+      registrationNo: 'DOC-PEDI-01',
+      roomNumber: 'OPD Room 5',
+      isActive: true,
+    },
+    create: {
+      userId: doctorUser3.id,
+      hospitalId: hospital.id,
+      departmentId: pediatricsDept.id,
+      name: 'Dr. Neha Kulkarni',
+      specialization: 'Pediatrics',
+      qualification: 'MBBS, MD (Pediatrics), DCH',
+      registrationNo: 'DOC-PEDI-01',
+      roomNumber: 'OPD Room 5',
+      isActive: true,
+    },
+  });
+  console.log('[Seed] Doctor 3 ready:', doctor3.name);
+
+  // 6. Doctor 4: Dr. Arjun Patil (Orthopaedics)
+  const doctorUser4 = await prisma.user.upsert({
+    where: { email: 'ortho.doctor@medikiosk.local' },
+    update: {},
+    create: {
+      email: 'ortho.doctor@medikiosk.local',
+      passwordHash,
+      role: 'DOCTOR',
+    },
+  });
+
+  const doctor4 = await prisma.doctor.upsert({
+    where: { userId: doctorUser4.id },
+    update: {
+      hospitalId: hospital.id,
+      departmentId: orthoDept.id,
+      name: 'Dr. Arjun Patil',
+      specialization: 'Orthopaedics',
+      qualification: 'MBBS, MS (Orthopaedics)',
+      registrationNo: 'DOC-ORTHO-01',
+      roomNumber: 'OPD Room 12',
+      isActive: true,
+    },
+    create: {
+      userId: doctorUser4.id,
+      hospitalId: hospital.id,
+      departmentId: orthoDept.id,
+      name: 'Dr. Arjun Patil',
+      specialization: 'Orthopaedics',
+      qualification: 'MBBS, MS (Orthopaedics)',
+      registrationNo: 'DOC-ORTHO-01',
+      roomNumber: 'OPD Room 12',
+      isActive: true,
+    },
+  });
+  console.log('[Seed] Doctor 4 ready:', doctor4.name);
+
+  // 7. Admin User
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@medikiosk.local' },
     update: {},
@@ -214,7 +288,7 @@ async function main() {
   });
   console.log('[Seed] Admin user ready:', adminUser.email);
 
-  // 6. Demo Seed Patient 1 (Aarav Sharma - General Medicine Case)
+  // 8. Demo Seed Patient 1 (Aarav Sharma - General Medicine Case)
   const demoPatient1 = await prisma.patient.upsert({
     where: { patientIdentifier: 'DEMO-PAT-001' },
     update: {
@@ -242,10 +316,10 @@ async function main() {
     },
   });
 
-  // 7. Demo Encounter 1
+  // Demo Encounter 1: Assigned to Dr. Priya Deshmukh (General Medicine)
   const demoEncounter1 = await prisma.encounter.upsert({
     where: { id: 'demo-enc-gm-001' },
-    update: {},
+    update: { attendingDoctorId: doctor1.id },
     create: {
       id: 'demo-enc-gm-001',
       patientId: demoPatient1.id,
@@ -259,8 +333,137 @@ async function main() {
       triageTier: 'NORMAL',
     },
   });
-  console.log('[Seed] Demo Patient & Encounter ready:', demoEncounter1.tokenNumber);
 
+  // Demo Patient 2: AYUSH Case (Meera Joshi) -> Dr. Rajendra Joshi
+  const demoPatient2 = await prisma.patient.upsert({
+    where: { patientIdentifier: 'DEMO-PAT-002' },
+    update: {
+      fullName: 'Meera Joshi',
+      ageYears: 38,
+      gender: 'FEMALE',
+      hospitalUhid: 'UHID-2026-002',
+      phone: '+919876543211',
+      preferredLanguage: 'MR',
+    },
+    create: {
+      patientIdentifier: 'DEMO-PAT-002',
+      firstName: 'Meera',
+      lastName: 'Joshi',
+      fullName: 'Meera Joshi',
+      dateOfBirth: new Date('1988-08-20'),
+      ageYears: 38,
+      gender: 'FEMALE',
+      phone: '+919876543211',
+      hospitalUhid: 'UHID-2026-002',
+      preferredLanguage: 'MR',
+      medicalHistory: ['Chronic Acidity', 'Mild Vata imbalance'],
+    },
+  });
+
+  const demoEncounter2 = await prisma.encounter.upsert({
+    where: { id: 'demo-enc-ayu-001' },
+    update: { attendingDoctorId: doctor2.id },
+    create: {
+      id: 'demo-enc-ayu-001',
+      patientId: demoPatient2.id,
+      hospitalId: hospital.id,
+      departmentId: ayushDept.id,
+      attendingDoctorId: doctor2.id,
+      tokenNumber: 'AYU-001',
+      opdMode: 'AYUSH',
+      visitType: 'WALK_IN',
+      status: 'WAITING',
+      triageTier: 'NORMAL',
+    },
+  });
+
+  // Demo Patient 3: Pediatric Case (Master Aryan More) -> Dr. Neha Kulkarni
+  const demoPatient3 = await prisma.patient.upsert({
+    where: { patientIdentifier: 'DEMO-PAT-003' },
+    update: {
+      fullName: 'Master Aryan More',
+      ageYears: 6,
+      gender: 'MALE',
+      hospitalUhid: 'UHID-2026-003',
+      phone: '+919876543212',
+      preferredLanguage: 'MR',
+    },
+    create: {
+      patientIdentifier: 'DEMO-PAT-003',
+      firstName: 'Aryan',
+      lastName: 'More',
+      fullName: 'Master Aryan More',
+      dateOfBirth: new Date('2020-03-10'),
+      ageYears: 6,
+      gender: 'MALE',
+      phone: '+919876543212',
+      hospitalUhid: 'UHID-2026-003',
+      preferredLanguage: 'MR',
+      medicalHistory: [],
+    },
+  });
+
+  const demoEncounter3 = await prisma.encounter.upsert({
+    where: { id: 'demo-enc-pedi-001' },
+    update: { attendingDoctorId: doctor3.id },
+    create: {
+      id: 'demo-enc-pedi-001',
+      patientId: demoPatient3.id,
+      hospitalId: hospital.id,
+      departmentId: pediatricsDept.id,
+      attendingDoctorId: doctor3.id,
+      tokenNumber: 'PED-001',
+      opdMode: 'SPECIALTY',
+      visitType: 'WALK_IN',
+      status: 'WAITING',
+      triageTier: 'NORMAL',
+    },
+  });
+
+  // Demo Patient 4: Orthopaedics Case (Suresh Kadam - Knee Injury) -> Dr. Arjun Patil
+  const demoPatient4 = await prisma.patient.upsert({
+    where: { patientIdentifier: 'DEMO-PAT-004' },
+    update: {
+      fullName: 'Suresh Kadam',
+      ageYears: 54,
+      gender: 'MALE',
+      hospitalUhid: 'UHID-2026-004',
+      phone: '+919876543213',
+      preferredLanguage: 'MR',
+    },
+    create: {
+      patientIdentifier: 'DEMO-PAT-004',
+      firstName: 'Suresh',
+      lastName: 'Kadam',
+      fullName: 'Suresh Kadam',
+      dateOfBirth: new Date('1972-11-12'),
+      ageYears: 54,
+      gender: 'MALE',
+      phone: '+919876543213',
+      hospitalUhid: 'UHID-2026-004',
+      preferredLanguage: 'MR',
+      medicalHistory: ['Right Knee Osteoarthritis'],
+    },
+  });
+
+  const demoEncounter4 = await prisma.encounter.upsert({
+    where: { id: 'demo-enc-ortho-001' },
+    update: { attendingDoctorId: doctor4.id },
+    create: {
+      id: 'demo-enc-ortho-001',
+      patientId: demoPatient4.id,
+      hospitalId: hospital.id,
+      departmentId: orthoDept.id,
+      attendingDoctorId: doctor4.id,
+      tokenNumber: 'ORT-001',
+      opdMode: 'SPECIALTY',
+      visitType: 'WALK_IN',
+      status: 'WAITING',
+      triageTier: 'NORMAL',
+    },
+  });
+
+  console.log('[Seed] Demo Encounters ready: GM-001, AYU-001, PED-001, ORT-001');
   console.log('[Seed] Institutional seeding completed successfully.');
 }
 

@@ -228,4 +228,57 @@ export const encounterController = {
       next(error);
     }
   },
+
+  /**
+   * POST /api/encounters/:id/cancel
+   * Patient cancels an uncompleted OPD encounter.
+   * Disallows cancellation if IN_CONSULTATION or COMPLETED.
+   */
+  async cancelEncounter(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const encounter = await prisma.encounter.findUnique({
+        where: { id },
+        include: { patient: true, department: true },
+      });
+
+      if (!encounter) {
+        throw new AppError(404, 'Encounter not found', 'ENCOUNTER_NOT_FOUND');
+      }
+
+      if (encounter.status === 'IN_CONSULTATION' || encounter.status === 'COMPLETED') {
+        throw new AppError(400, `Cannot cancel encounter that is already ${encounter.status.replace(/_/g, ' ')}.`, 'CANCELLATION_NOT_ALLOWED');
+      }
+
+      if (encounter.status === 'CANCELLED') {
+        return res.status(200).json({
+          success: true,
+          data: encounter,
+          message: 'Encounter is already cancelled',
+        });
+      }
+
+      // Soft cancel
+      const updated = await prisma.encounter.update({
+        where: { id },
+        data: {
+          status: 'CANCELLED',
+        },
+        include: {
+          patient: true,
+          department: true,
+          hospital: true,
+        },
+      });
+
+      res.status(200).json({
+        success: true,
+        data: updated,
+        message: 'OPD encounter cancelled successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };

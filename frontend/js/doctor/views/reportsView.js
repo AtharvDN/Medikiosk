@@ -6,12 +6,13 @@
  */
 
 import { doctorApi } from '../doctorApi.js';
+import { icons } from '../doctorIcons.js';
 
 export function renderDoctorReportsView() {
   const html = `
     <div style="margin-bottom: 1.5rem;">
-      <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--doc-text-main); margin-bottom: 0.25rem;">
-        📈 OPD Clinical Analytics & Throughput
+      <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--doc-text-main); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 8px;">
+        ${icons.reports(22, '#2563EB')} OPD Clinical Analytics & Throughput
       </h2>
       <p style="font-size: 0.85rem; color: var(--doc-text-muted);">
         Verified intake volume, department distribution, and throughput metrics computed directly from active clinical database sessions.
@@ -52,7 +53,7 @@ export function renderDoctorReportsView() {
               <div class="doc-stat-val">${d.totalSessions}</div>
               <div class="doc-stat-label">Total OPD Sessions</div>
             </div>
-            <div class="doc-stat-icon queue">📊</div>
+            <div class="doc-stat-icon queue" style="display:flex;align-items:center;justify-content:center;">${icons.reports(22, '#2563EB')}</div>
           </div>
 
           <div class="doc-stat-card">
@@ -60,7 +61,7 @@ export function renderDoctorReportsView() {
               <div class="doc-stat-val">${d.completedIntakes}</div>
               <div class="doc-stat-label">Completed Intakes</div>
             </div>
-            <div class="doc-stat-icon kiosk">✓</div>
+            <div class="doc-stat-icon kiosk" style="display:flex;align-items:center;justify-content:center;">${icons.check(22, '#16A34A')}</div>
           </div>
 
           <div class="doc-stat-card">
@@ -68,7 +69,7 @@ export function renderDoctorReportsView() {
               <div class="doc-stat-val" style="color:#dc2626;">${d.criticalAlertsCount}</div>
               <div class="doc-stat-label">Red-Flag Alerts</div>
             </div>
-            <div class="doc-stat-icon critical">🚨</div>
+            <div class="doc-stat-icon critical" style="display:flex;align-items:center;justify-content:center;">${icons.alert(22, '#DC2626')}</div>
           </div>
 
           <div class="doc-stat-card">
@@ -76,7 +77,7 @@ export function renderDoctorReportsView() {
               <div class="doc-stat-val">${d.totalDocumentsProcessed}</div>
               <div class="doc-stat-label">Documents Processed</div>
             </div>
-            <div class="doc-stat-icon pending">📑</div>
+            <div class="doc-stat-icon pending" style="display:flex;align-items:center;justify-content:center;">${icons.document(22, '#64748B')}</div>
           </div>
         </div>
 
@@ -84,7 +85,7 @@ export function renderDoctorReportsView() {
           <!-- Department Distribution -->
           <div class="doc-table-card" style="padding: 1.5rem;">
             <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--doc-text-main);">
-              🏥 OPD Stream Distribution
+              OPD Stream Distribution
             </h3>
             <div style="display: flex; flex-direction: column; gap: 0.85rem;">
               <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
@@ -101,7 +102,7 @@ export function renderDoctorReportsView() {
           <!-- Language & Operational Metrics -->
           <div class="doc-table-card" style="padding: 1.5rem;">
             <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--doc-text-main);">
-              🌐 Linguistic & Operational Breakdown
+              Linguistic & Operational Breakdown
             </h3>
             <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.95rem;">
               <div>
@@ -123,7 +124,7 @@ export function renderDoctorReportsView() {
     } catch (err) {
       container.innerHTML = `
         <div class="doc-state-container">
-          <div class="doc-state-icon">⚠️</div>
+          <div class="doc-state-icon" style="display:flex;align-items:center;justify-content:center;">${icons.alert(28, '#D97706')}</div>
           <div class="doc-state-title">Server Unavailable</div>
           <div class="doc-state-desc">${err.message}</div>
         </div>

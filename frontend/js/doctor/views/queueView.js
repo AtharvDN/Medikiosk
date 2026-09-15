@@ -4,13 +4,14 @@
 
 import { doctorApi } from '../doctorApi.js';
 import { openPatientWorkspace } from './dashboardView.js';
+import { icons } from '../doctorIcons.js';
 
 export function renderDoctorQueueView() {
   const html = `
     <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
       <div>
-        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--doc-text-main); margin-bottom: 0.25rem;">
-          📋 Live OPD Consultation Queue
+        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--doc-text-main); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 8px;">
+          ${icons.queue(22, '#2563EB')} Live OPD Consultation Queue
         </h2>
         <p style="font-size: 0.85rem; color: var(--doc-text-muted);">
           Real-time patient check-ins and completed MediKiosk intakes ready for physician consultation.
@@ -21,8 +22,8 @@ export function renderDoctorQueueView() {
       <div style="display: flex; gap: 0.5rem;" id="doc-queue-filter-group">
         <button class="doc-action-btn queue-filter-btn active" data-filter="">All Patients</button>
         <button class="doc-action-btn queue-filter-btn" data-filter="WAITING">Waiting</button>
-        <button class="doc-action-btn queue-filter-btn" data-triage="CRITICAL">🚨 Critical Red-Flags</button>
-        <button class="doc-action-btn queue-filter-btn" data-opd="AYUSH">🌿 AYUSH</button>
+        <button class="doc-action-btn queue-filter-btn" data-triage="CRITICAL">Critical Red-Flags</button>
+        <button class="doc-action-btn queue-filter-btn" data-opd="AYUSH">AYUSH</button>
         <button class="doc-action-btn queue-filter-btn" data-filter="COMPLETED">Completed</button>
       </div>
     </div>
@@ -68,7 +69,7 @@ export function renderDoctorQueueView() {
       if (!queue || queue.length === 0) {
         container.innerHTML = `
           <div class="doc-state-container">
-            <div class="doc-state-icon">✅</div>
+            <div class="doc-state-icon" style="display:flex;align-items:center;justify-content:center;">${icons.check(28, '#16A34A')}</div>
             <div class="doc-state-title">No Patients in This Filter</div>
             <div class="doc-state-desc">All caught up! No patients are currently waiting under this selection.</div>
           </div>
@@ -100,8 +101,8 @@ export function renderDoctorQueueView() {
 
                 const opdBadge =
                   item.opdMode === 'AYUSH'
-                    ? '<span class="doc-opd-badge ayush">🌿 AYUSH</span>'
-                    : '<span class="doc-opd-badge general">🏥 General</span>';
+                    ? '<span class="doc-opd-badge ayush">AYUSH</span>'
+                    : '<span class="doc-opd-badge general">General</span>';
 
                 const timeStr = item.intakeTime
                   ? new Date(item.intakeTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -121,7 +122,7 @@ export function renderDoctorQueueView() {
                     <td>${opdBadge}</td>
                     <td>
                       <span class="doc-triage-badge ${triageClass}">
-                        ${item.triageTier === 'CRITICAL' ? '🚨 ' : ''}${item.triageTier}
+                        ${item.triageTier}
                       </span>
                     </td>
                     <td><span style="font-size: 0.82rem; color: var(--doc-text-muted);">${timeStr}</span></td>
@@ -132,7 +133,7 @@ export function renderDoctorQueueView() {
                     </td>
                     <td style="text-align: right;">
                       <button class="doc-btn-open doc-open-workspace-btn" data-session-id="${item.sessionId}">
-                        Open Workspace ➔
+                        Open Workspace
                       </button>
                     </td>
                   </tr>
@@ -152,7 +153,7 @@ export function renderDoctorQueueView() {
     } catch (err) {
       container.innerHTML = `
         <div class="doc-state-container">
-          <div class="doc-state-icon">⚠️</div>
+          <div class="doc-state-icon" style="display:flex;align-items:center;justify-content:center;">${icons.alert(28, '#D97706')}</div>
           <div class="doc-state-title">Server Unavailable</div>
           <div class="doc-state-desc">${err.message}</div>
         </div>

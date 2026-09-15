@@ -45,13 +45,13 @@
 /* Base resets for Doctor Portal container */
 #doctor-app {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   width: 100vw;
   background-color: var(--doc-bg-body);
   font-family: var(--doc-font);
   color: var(--doc-text-main);
   box-sizing: border-box;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 #doctor-app * {
@@ -62,7 +62,8 @@
 .doc-shell {
   display: flex;
   width: 100%;
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* -------------------------------------------------------------
@@ -70,6 +71,8 @@
    ------------------------------------------------------------- */
 .doc-sidebar {
   width: 280px;
+  height: 100%;
+  overflow-y: auto;
   background: var(--doc-bg-sidebar);
   color: #f8fafc;
   display: flex;
@@ -243,11 +246,14 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100%;
+  overflow: hidden;
   background: var(--doc-bg-body);
 }
 
 .doc-topbar {
   height: 64px;
+  flex-shrink: 0;
   background: var(--doc-bg-surface);
   border-bottom: 1px solid var(--doc-border);
   display: flex;
@@ -346,9 +352,11 @@
 }
 
 .doc-stage-content {
-  padding: 1.75rem 2rem;
-  flex-grow: 1;
+  padding: 1.75rem 2rem 5rem 2rem;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* -------------------------------------------------------------
@@ -370,11 +378,13 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
+  color: #ffffff !important;
 }
 
 .doc-welcome-subtitle {
   font-size: 0.875rem;
-  color: #cbd5e1;
+  color: #f8fafc !important;
+  opacity: 0.95;
 }
 
 .doc-stat-grid {
@@ -556,7 +566,9 @@
   flex-direction: column;
   gap: 1.5rem;
   max-width: 1440px;
+  width: 100%;
   margin: 0 auto;
+  padding-bottom: 80px;
 }
 
 /* Section A: Patient Header */

@@ -94,7 +94,7 @@ export function renderConsentScreen() {
           version: '1.0',
         };
         notifyStateChange('consent');
-        router.navigate('opdSelection');
+        router.navigate('patientDashboard');
       });
 
       document.getElementById('btn-consent-decline')?.addEventListener('click', () => {

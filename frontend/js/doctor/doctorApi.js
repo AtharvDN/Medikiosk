@@ -97,6 +97,24 @@ export const doctorApi = {
     return request('/settings');
   },
 
+  async getPatientTimeline(patientId) {
+    return request(`/patients/${patientId}/timeline`);
+  },
+
+  async recordVitals(patientOrEncounterId, vitals) {
+    return request(`/patients/${patientOrEncounterId}/vitals`, {
+      method: 'POST',
+      body: JSON.stringify(vitals),
+    });
+  },
+
+  async recordExamination(patientOrEncounterId, examData) {
+    return request(`/patients/${patientOrEncounterId}/examination`, {
+      method: 'POST',
+      body: JSON.stringify(examData),
+    });
+  },
+
   async updateSettings(settings) {
     return request('/settings', {
       method: 'POST',

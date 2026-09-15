@@ -103,7 +103,7 @@ class AudioController {
     if (this._muted) {
       return { success: false, reason: 'muted' };
     }
-    return await ttsService.speak({ text, language: lang });
+    return await ttsService.speak(text, lang);
   }
 
   stop() {

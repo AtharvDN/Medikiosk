@@ -13,16 +13,9 @@ class SessionService {
   }
 
   startMonitoring(onWarning) {
-    this.warningCallback = onWarning;
-    this.resetTimer();
-
-    // Reset on any physical touch or interaction
-    const userEvents = ['touchstart', 'pointerdown', 'keydown', 'click'];
-    userEvents.forEach((event) => {
-      window.addEventListener(event, () => this.resetTimer(), { passive: true });
-    });
-
-    this.timer = setInterval(() => this.tick(), 1000);
+    // Inactivity timeout completely disabled for demo continuity
+    this.warningCallback = null;
+    this.timer = null;
   }
 
   resetTimer() {
@@ -30,25 +23,7 @@ class SessionService {
   }
 
   tick() {
-    // Only count inactivity once user has advanced past welcome screen
-    if (appState.currentScreen === 'welcome' || appState.currentScreen === 'complete') {
-      this.inactivitySeconds = 0;
-      return;
-    }
-
-    this.inactivitySeconds++;
-
-    // Warning modal at 45 seconds
-    if (this.inactivitySeconds === 45 && this.warningCallback) {
-      this.warningCallback(15);
-    }
-
-    // Auto-abort and purge at 60 seconds
-    if (this.inactivitySeconds >= 60) {
-      console.warn('[Session] Inactivity timeout reached (60s). Purging kiosk memory.');
-      resetSession();
-      this.inactivitySeconds = 0;
-    }
+    // Inactivity countdown disabled
   }
 }
 

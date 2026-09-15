@@ -248,7 +248,10 @@ export function renderConversationScreen() {
               micBtn.removeAttribute('disabled');
             }
             if (statusText) {
-              statusText.textContent = t('voiceUnavailable', lang) || 'Voice service is temporarily unavailable.';
+              const fallbackMsg = lang === 'mr' 
+                ? 'आवाज स्पष्ट ऐकू आला नाही. पुन्हा बोलण्यासाठी माईक दाबा किंवा खालील पर्याय निवडा.' 
+                : (lang === 'hi' ? 'आवाज़ स्पष्ट सुनाई नहीं दी। पुनः बोलने के लिए माइक दबाएं या नीचे विकल्प चुनें।' : 'Could not hear speech clearly. Tap microphone to speak again or select below.');
+              statusText.textContent = (message || fallbackMsg);
             }
             notifyStateChange('voice');
           },

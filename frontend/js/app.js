@@ -56,22 +56,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   handleModeSwitch();
   window.addEventListener('hashchange', handleModeSwitch);
 
-  // 5. Inactivity Monitor (Patient Kiosk Only)
-  sessionService.startMonitoring((remainingSeconds) => {
-    const isDoctorMode = window.location.hash.startsWith('#/doctor') || window.location.hash.startsWith('#doctor');
-    if (isDoctorMode) return; // Do not auto-reset doctor workstation
+  // 5. Inactivity Monitor disabled for demo continuity
 
-    openModal({
-      title: '⏰ Are you still there?',
-      contentHtml: `
-        <p>No activity detected. To protect your privacy, this kiosk session will reset in <strong>${remainingSeconds} seconds</strong>.</p>
-        <p style="margin-top: 1rem; color: var(--muted-text);">Tap anywhere to continue your consultation intake.</p>
-      `,
-      onClose: () => {
-        sessionService.resetTimer();
-      },
-    });
-  });
 
   // 6. Backend Connection Check
   try {

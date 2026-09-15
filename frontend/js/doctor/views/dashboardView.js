@@ -4,6 +4,7 @@
 
 import { doctorState, setPatientWorkspace, setActiveTab } from '../doctorState.js';
 import { doctorApi } from '../doctorApi.js';
+import { icons } from '../doctorIcons.js';
 
 export function renderDoctorDashboardView() {
   const doctor = doctorState.doctor || {
@@ -15,14 +16,14 @@ export function renderDoctorDashboardView() {
   const html = `
     <div class="doc-welcome-banner">
       <div>
-        <h2 class="doc-welcome-title">Welcome, ${doctor.name}</h2>
-        <p class="doc-welcome-subtitle">
-          🏥 ${doctor.department} • Room 03 • ${doctor.hospital}
+        <h2 class="doc-welcome-title" style="color: #ffffff !important; margin: 0 0 0.25rem 0;">Welcome, ${doctor.name}</h2>
+        <p class="doc-welcome-subtitle" style="color: #f8fafc !important; margin: 0; opacity: 0.95;">
+          ${doctor.department} • Room 03 • ${doctor.hospital}
         </p>
       </div>
       <div style="text-align: right;">
-        <span style="font-size: 0.8rem; background: rgba(255,255,255,0.15); padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 600;">
-          🟢 Clinical Station Online
+        <span style="font-size: 0.8rem; background: rgba(255,255,255,0.15); padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22C55E;"></span> Clinical Station Online
         </span>
       </div>
     </div>
@@ -34,7 +35,7 @@ export function renderDoctorDashboardView() {
           <div id="metric-today-queue" class="doc-stat-val">...</div>
           <div class="doc-stat-label">Today's OPD Queue</div>
         </div>
-        <div class="doc-stat-icon queue">📋</div>
+        <div class="doc-stat-icon queue" style="display:flex;align-items:center;justify-content:center;">${icons.queue(22, '#2563EB')}</div>
       </div>
 
       <div class="doc-stat-card">
@@ -42,7 +43,7 @@ export function renderDoctorDashboardView() {
           <div id="metric-kiosk-intakes" class="doc-stat-val">...</div>
           <div class="doc-stat-label">Kiosk Self-Intakes</div>
         </div>
-        <div class="doc-stat-icon kiosk">📱</div>
+        <div class="doc-stat-icon kiosk" style="display:flex;align-items:center;justify-content:center;">${icons.stethoscope(22, '#0D9488')}</div>
       </div>
 
       <div class="doc-stat-card">
@@ -50,7 +51,7 @@ export function renderDoctorDashboardView() {
           <div id="metric-pending-reviews" class="doc-stat-val">...</div>
           <div class="doc-stat-label">Pending Reviews</div>
         </div>
-        <div class="doc-stat-icon pending">⏳</div>
+        <div class="doc-stat-icon pending" style="display:flex;align-items:center;justify-content:center;">${icons.clock(22, '#D97706')}</div>
       </div>
 
       <div class="doc-stat-card">
@@ -58,7 +59,7 @@ export function renderDoctorDashboardView() {
           <div id="metric-critical-alerts" class="doc-stat-val">...</div>
           <div class="doc-stat-label">Critical Red-Flags</div>
         </div>
-        <div class="doc-stat-icon critical">🚨</div>
+        <div class="doc-stat-icon critical" style="display:flex;align-items:center;justify-content:center;">${icons.alert(22, '#DC2626')}</div>
       </div>
     </div>
 
@@ -117,7 +118,7 @@ export function renderDoctorDashboardView() {
         critBox.style.display = 'block';
         critBox.innerHTML = `
           <div class="doc-critical-banner">
-            <div class="doc-critical-icon">🚨</div>
+            <div class="doc-critical-icon" style="display:flex;align-items:center;justify-content:center;">${icons.alert(24, '#DC2626')}</div>
             <div style="flex-grow: 1;">
               <div class="doc-critical-heading">PRIORITY CLINICAL ALERT: RED-FLAG INTAKE DETECTED</div>
               <div class="doc-critical-text">
@@ -141,7 +142,7 @@ export function renderDoctorDashboardView() {
         if (!recentQueue || recentQueue.length === 0) {
           tableWrap.innerHTML = `
             <div class="doc-state-container">
-              <div class="doc-state-icon">🛋️</div>
+              <div class="doc-state-icon" style="display:flex;align-items:center;justify-content:center;">${icons.user(28, '#94A3B8')}</div>
               <div class="doc-state-title">No Patients in Queue</div>
               <div class="doc-state-desc">Waiting for patient kiosk self-intakes to be completed.</div>
             </div>
@@ -171,8 +172,8 @@ export function renderDoctorDashboardView() {
 
                   const opdBadge =
                     item.opdMode === 'AYUSH'
-                      ? '<span class="doc-opd-badge ayush">🌿 AYUSH</span>'
-                      : '<span class="doc-opd-badge general">🏥 General</span>';
+                      ? '<span class="doc-opd-badge ayush">AYUSH</span>'
+                      : '<span class="doc-opd-badge general">General</span>';
 
                   return `
                     <tr>
@@ -187,7 +188,7 @@ export function renderDoctorDashboardView() {
                       <td><strong>${item.chiefComplaint}</strong></td>
                       <td>
                         <span class="doc-triage-badge ${triageClass}">
-                          ${item.triageTier === 'CRITICAL' ? '🚨 ' : ''}${item.triageTier}
+                          ${item.triageTier}
                         </span>
                       </td>
                       <td>
@@ -197,7 +198,7 @@ export function renderDoctorDashboardView() {
                       </td>
                       <td style="text-align: right;">
                         <button class="doc-btn-open doc-open-workspace-btn" data-session-id="${item.sessionId}">
-                          Open Workspace ➔
+                          Open Workspace
                         </button>
                       </td>
                     </tr>

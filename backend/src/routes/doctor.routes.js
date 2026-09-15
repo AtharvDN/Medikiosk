@@ -13,6 +13,9 @@ doctorRouter.get('/queue', authenticateToken, requireRole('DOCTOR'), doctorContr
 doctorRouter.get('/alerts', authenticateToken, requireRole('DOCTOR'), doctorController.getAlerts);
 doctorRouter.get('/patients', authenticateToken, requireRole('DOCTOR'), doctorController.getPatients);
 doctorRouter.get('/patients/:id/workspace', authenticateToken, requireRole('DOCTOR'), doctorController.getWorkspace);
+doctorRouter.get('/patients/:id/timeline', authenticateToken, requireRole('DOCTOR'), doctorController.getPatientTimeline);
+doctorRouter.post('/patients/:id/vitals', authenticateToken, requireRole('DOCTOR'), doctorController.recordVitals);
+doctorRouter.post('/patients/:id/examination', authenticateToken, requireRole('DOCTOR'), doctorController.recordExamination);
 doctorRouter.post('/patients/:id/notes', authenticateToken, requireRole('DOCTOR'), doctorController.saveNotes);
 doctorRouter.post('/patients/:id/status', authenticateToken, requireRole('DOCTOR'), doctorController.updateStatus);
 doctorRouter.post('/patients/:id/review', authenticateToken, requireRole('DOCTOR'), doctorController.confirmReview);
