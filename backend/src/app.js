@@ -45,6 +45,7 @@ app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 app.use(requestLogger);
 
 // Root & API Health Check
+app.get('/', (req, res) => res.status(200).json({ status: 'ok', service: 'medikiosk-api', docs: '/api/health' }));
 app.get('/health', (req, res) => res.status(200).json({ status: 'ok', service: 'medikiosk-api' }));
 app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);

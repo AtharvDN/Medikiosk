@@ -49,8 +49,14 @@ class OCRHandler(BaseHTTPRequestHandler):
         except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
             pass
 
+    def do_HEAD(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Connection", "close")
+        self.end_headers()
+
     def do_GET(self):
-        if self.path in ("/health", "/status"):
+        if self.path in ("/", "/health", "/status"):
             self._send_json(200, {
                 "service": "paddleocr",
                 "ready": True,

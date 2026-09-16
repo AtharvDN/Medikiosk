@@ -8,9 +8,9 @@ async function startServer() {
     await prisma.$connect();
     console.log('[Database] PostgreSQL / Supabase connected successfully via Prisma.');
 
-    const server = app.listen(config.port, () => {
-      console.log(`[Server] MediKiosk API server running on port ${config.port} in ${config.env} mode.`);
-      console.log(`[Health] Check health at http://localhost:${config.port}/api/health`);
+    const server = app.listen(config.port, '0.0.0.0', () => {
+      console.log(`[Server] MediKiosk API server running on 0.0.0.0:${config.port} in ${config.env} mode.`);
+      console.log(`[Health] Check health at http://0.0.0.0:${config.port}/health`);
     });
 
     // Graceful Shutdown Handlers

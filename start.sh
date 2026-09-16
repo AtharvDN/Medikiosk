@@ -19,15 +19,7 @@ if [ -n "$DATABASE_URL" ]; then
   (cd backend && npx prisma db push --skip-generate || true)
 fi
 
-# 3. Handle shutdown cleanly
-cleanup() {
-  echo "[MediKiosk] Caught termination signal. Stopping all processes..."
-  kill -TERM "$VOICE_PID" 2>/dev/null || true
-  exit 0
-}
-trap cleanup INT TERM
-
-# 4. Launch Node.js Express REST API Server on platform $PORT
+# 3. Launch Node.js Express REST API Server on platform $PORT
 echo "[Backend API] Launching Express REST API on port ${PORT:-5000}..."
 cd backend
 exec node src/server.js
