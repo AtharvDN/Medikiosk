@@ -10,6 +10,7 @@ import { renderProgress } from './components/progress.js';
 import { t } from './i18n.js';
 import { showHelpModal } from './screens/help.js';
 import { renderDebugPanel } from './components/debugPanel.js';
+import { audioController } from './audio.js';
 
 import { renderLandingScreen } from './screens/landing.js';
 import { renderWelcomeScreen } from './screens/welcome.js';
@@ -133,6 +134,24 @@ class Router {
 
     // 4. Attach global header events
     this.attachHeaderEvents();
+
+    // 5. Silent Background Audio Pre-fetch: Preloads narration audio into memory
+    // so when patient taps "Listen", it starts in 0ms without any network lag.
+    try {
+      const lang = appState.language;
+      let promptText = null;
+      if (screenName === 'welcome') promptText = t('welcomeTitle', lang);
+      else if (screenName === 'language') promptText = t('selectLanguage', lang);
+      else if (screenName === 'identify') promptText = t('identifyTitle', lang);
+      else if (screenName === 'consent') promptText = t('consentTitle', lang);
+      else if (screenName === 'opdSelection') promptText = t('opdSelectTitle', lang);
+      else if (screenName === 'chiefComplaint') promptText = t('complaintTitle', lang);
+      else if (screenName === 'documents') promptText = t('docQuestionTitle', lang);
+
+      if (promptText) {
+        audioController.preload(promptText, lang);
+      }
+    } catch (e) {}
   }
 
   renderFooter() {

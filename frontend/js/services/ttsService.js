@@ -483,6 +483,46 @@ export class NeuralTTSProvider {
     this.clientAudioCache = new Map();
   }
 
+  /**
+   * Background audio pre-fetch: preloads and caches audio before patient clicks.
+   * Ensures the very first click plays with 0ms delay.
+   */
+  async preload(text, language = 'mr', options = {}) {
+    if (!text || typeof text !== 'string') return;
+    const cleanText = text.trim();
+    if (!cleanText) return;
+    const cacheKey = `${language}:${cleanText}`;
+    if (this.clientAudioCache.has(cacheKey)) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/voice/tts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: cleanText,
+          language,
+          questionId: options.questionId || null,
+          requestId: `preload-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.success && data.data?.audioBase64) {
+        const format = data.data.format || 'wav';
+        const mime = format === 'wav' ? 'audio/wav' : 'audio/mpeg';
+        const audioSrc = `data:${mime};base64,${data.data.audioBase64}`;
+        if (this.clientAudioCache.size > 150) {
+          const oldestKey = this.clientAudioCache.keys().next().value;
+          this.clientAudioCache.delete(oldestKey);
+        }
+        this.clientAudioCache.set(cacheKey, { audioSrc, format, model: data.data?.model });
+        console.log(`[TTS Preload] Cached: "${cleanText.slice(0, 25)}..." (${language})`);
+      }
+    } catch (e) {
+      // Preload silently ignores any network hiccups
+    }
+  }
+
   async speak(arg1, arg2 = 'mr', arg3 = {}) {
     let text;
     let language = 'mr';
@@ -792,6 +832,12 @@ class TTSService {
 
   processUtterances(text) {
     return this.provider ? this.provider.processUtterances(text) : [text];
+  }
+
+  preload(text, language = 'mr', options = {}) {
+    if (this.provider && typeof this.provider.preload === 'function') {
+      this.provider.preload(text, language, options);
+    }
   }
 
   onSpeakingChange(callback) {

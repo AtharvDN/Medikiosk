@@ -88,6 +88,13 @@ export function renderConversationScreen() {
 
   appState.activeQuestionId = qId;
 
+  // Background audio pre-fetch: preloads active question narration
+  if (qText) {
+    try {
+      audioController.preload(qText, lang);
+    } catch (e) {}
+  }
+
   // Render Options
   const optionsHtml = qOptions
     .map((opt, idx) => {

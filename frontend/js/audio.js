@@ -107,6 +107,11 @@ class AudioController {
     return await ttsService.speak(text, lang);
   }
 
+  preload(text, lang = 'mr') {
+    if (this._muted) return;
+    ttsService.preload(text, lang);
+  }
+
   stop() {
     ttsService.stop();
   }
