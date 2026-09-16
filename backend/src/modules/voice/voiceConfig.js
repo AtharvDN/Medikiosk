@@ -10,7 +10,7 @@ export const voiceConfig = {
   // ASR Configuration (IndicConformer)
   asr: {
     provider: process.env.ASR_PROVIDER || 'indicconformer',
-    mode: process.env.ASR_MODE || 'mock', // 'indicconformer' | 'mock'
+    mode: process.env.ASR_MODE || 'indicconformer', // 'indicconformer' | 'mock'
     endpoint: process.env.ASR_ENDPOINT || (process.env.ASR_URL ? `${process.env.ASR_URL}/asr` : 'http://127.0.0.1:8001/asr'),
     healthUrl: process.env.ASR_HEALTH_URL || (process.env.ASR_URL ? `${process.env.ASR_URL}/health` : 'http://127.0.0.1:8001/health'),
     timeoutMs: parseInt(process.env.ASR_TIMEOUT_MS || '10000', 10),

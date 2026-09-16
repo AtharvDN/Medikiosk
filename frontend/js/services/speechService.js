@@ -10,6 +10,7 @@ import { api } from '../api.js';
 class SpeechService {
   constructor() {
     this.mediaRecorder = null;
+    this.recognition = null;
     this.audioChunks = [];
     this.status = 'IDLE';
     this.timer = null;
@@ -18,8 +19,8 @@ class SpeechService {
 
   /**
    * Primary entry point for speech listening.
-   * Captures raw acoustic microphone stream and submits to sovereign IndicConformer ASR.
-   * Never falls back to browser speech recognition.
+   * Uses hybrid real-time Web Speech API (when available in browser) with seamless
+   * fallback to raw microphone capture & sovereign IndicConformer ASR.
    */
   async startListening(lang = 'mr', onStateChange, context = {}) {
     const notify = typeof onStateChange === 'function' ? onStateChange : () => {};
@@ -33,6 +34,134 @@ class SpeechService {
       transcript: null,
     });
 
+    const SpeechRecognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
+
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        this.recognition = recognition;
+
+        const bcp47 = lang === 'mr' ? 'mr-IN' : (lang === 'hi' ? 'hi-IN' : 'en-IN');
+        recognition.lang = bcp47;
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+
+        let hasFinalResult = false;
+        let finalTranscript = '';
+
+        recognition.onresult = (event) => {
+          if (this.activeRequestId !== requestId) return;
+          let interim = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const res = event.results[i];
+            if (res.isFinal) {
+              finalTranscript += res[0].transcript;
+              hasFinalResult = true;
+            } else {
+              interim += res[0].transcript;
+            }
+          }
+          const currentText = (finalTranscript + ' ' + interim).trim();
+          if (currentText) {
+            notify({
+              status: 'LISTENING',
+              transcript: currentText,
+              requestId,
+            });
+          }
+        };
+
+        recognition.onspeechend = () => {
+          if (this.activeRequestId !== requestId) return;
+          this.status = 'PROCESSING';
+          notify({ status: 'PROCESSING', requestId });
+        };
+
+        recognition.onend = () => {
+          this.recognition = null;
+          if (this.timer) {
+            clearTimeout(this.timer);
+            this.timer = null;
+          }
+          if (this.activeRequestId !== requestId) return;
+
+          const trimmed = finalTranscript.trim();
+          if (trimmed) {
+            this.status = 'SUCCESS';
+            this.lastTranscript = trimmed;
+            notify({
+              status: 'SUCCESS',
+              transcript: trimmed,
+              confidence: 0.98,
+              provider: 'web-speech',
+              latency: 0,
+              requestId,
+            });
+          } else if (!hasFinalResult) {
+            console.info('[Speech] Web Speech ended without text, falling back to MediaRecorder ASR...');
+            this.startMediaRecorder(lang, notify, context, requestId);
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.warn('[Speech] Web Speech API error:', event.error);
+          this.recognition = null;
+          if (this.timer) {
+            clearTimeout(this.timer);
+            this.timer = null;
+          }
+          if (this.activeRequestId !== requestId) return;
+
+          if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            this.status = 'ERROR';
+            notify({
+              status: 'ERROR',
+              error: 'MIC_PERMISSION_DENIED',
+              message: 'Microphone permission was denied. Please allow microphone access or select an option below.',
+              transcript: null,
+              requestId,
+            });
+          } else if (event.error === 'no-speech') {
+            this.status = 'ERROR';
+            this.lastError = { code: 'EMPTY_AUDIO', message: 'No speech detected.' };
+            notify({
+              status: 'ERROR',
+              error: 'EMPTY_AUDIO',
+              message: 'No speech detected. Please speak clearly at normal volume or select an option below.',
+              transcript: null,
+              requestId,
+            });
+          } else {
+            console.info('[Speech] Non-fatal Web Speech error, falling back to MediaRecorder...');
+            this.startMediaRecorder(lang, notify, context, requestId);
+          }
+        };
+
+        recognition.start();
+
+        // 6-second timeout safety for Web Speech
+        this.timer = setTimeout(() => {
+          if (this.recognition) {
+            try {
+              this.recognition.stop();
+            } catch (e) {}
+          }
+        }, 6000);
+
+        return;
+      } catch (err) {
+        console.warn('[Speech] Web Speech initialization failed, falling back to MediaRecorder:', err);
+      }
+    }
+
+    await this.startMediaRecorder(lang, notify, context, requestId);
+  }
+
+  /**
+   * Sovereign MediaRecorder capture + IndicConformer ASR
+   */
+  async startMediaRecorder(lang, notify, context = {}, requestId) {
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
       console.warn('[Speech] Microphone capture hardware or MediaRecorder API unavailable.');
       this.status = 'SERVICE_UNAVAILABLE';
@@ -97,12 +226,12 @@ class SpeechService {
       // Collect audio chunks every 250ms for reliable streaming buffer
       this.mediaRecorder.start(250);
 
-      // Automatically stop recording after 8.0 seconds of active speech capture
+      // Automatically stop recording after 4.5 seconds of active speech capture
       this.timer = setTimeout(() => {
         if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
           this.mediaRecorder.stop();
         }
-      }, 8000);
+      }, 4500);
 
     } catch (err) {
       console.warn('[Speech] getUserMedia failed:', err);
@@ -285,13 +414,21 @@ class SpeechService {
   }
 
   isListening() {
-    return this.status === 'LISTENING' || (this.mediaRecorder && this.mediaRecorder.state === 'recording');
+    return this.status === 'LISTENING' || (this.mediaRecorder && this.mediaRecorder.state === 'recording') || Boolean(this.recognition);
   }
 
   stopListening() {
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
+    }
+    if (this.recognition) {
+      try {
+        this.recognition.stop();
+      } catch (e) {
+        console.warn('[Speech] Error stopping SpeechRecognition:', e);
+      }
+      this.recognition = null;
     }
     if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
       this.status = 'PROCESSING';

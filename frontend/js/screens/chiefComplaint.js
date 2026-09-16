@@ -56,6 +56,8 @@ export function renderChiefComplaintScreen() {
         interpretedText += ` • ${appState.complaint.duration.value} days`;
       }
     }
+  } else if (appState.voice.transcript) {
+    interpretedText = appState.voice.transcript;
   }
 
   const voiceBoxHtml = renderVoiceButton({
@@ -159,17 +161,44 @@ export function renderChiefComplaintScreen() {
               lower.includes('अतिसार') ||
               lower.includes('दस्त') ||
               lower.includes('diarrhea') ||
-              lower.includes('loose motion')
+              lower.includes('loose motion') ||
+              lower.includes('julaab') ||
+              lower.includes('dast')
             ) {
               appState.complaint.id = 'DIARRHEA';
               appState.complaint.location = null;
-            } else if (lower.includes('गुडघ') || lower.includes('घुटन') || lower.includes('knee')) {
+            } else if (
+              lower.includes('गुडघ') ||
+              lower.includes('घुटन') ||
+              lower.includes('knee') ||
+              lower.includes('gudgha') ||
+              lower.includes('ghutna') ||
+              lower.includes('पाय') ||
+              lower.includes('leg pain')
+            ) {
               appState.complaint.id = 'KNEE_PAIN';
               appState.complaint.location = 'knee';
-            } else if (lower.includes('खांद') || lower.includes('कंध') || lower.includes('shoulder')) {
+            } else if (
+              lower.includes('खांद') ||
+              lower.includes('कंध') ||
+              lower.includes('shoulder') ||
+              lower.includes('khanda') ||
+              lower.includes('kandha') ||
+              lower.includes('हाथ') ||
+              lower.includes('हात') ||
+              lower.includes('arm pain')
+            ) {
               appState.complaint.id = 'SHOULDER_PAIN';
               appState.complaint.location = 'shoulder';
-            } else if (lower.includes('छाती') || lower.includes('सीना') || lower.includes('chest')) {
+            } else if (
+              lower.includes('छाती') ||
+              lower.includes('सीना') ||
+              lower.includes('chest') ||
+              lower.includes('chhati') ||
+              lower.includes('seena') ||
+              lower.includes('heart') ||
+              lower.includes('ह्रदय')
+            ) {
               appState.complaint.id = 'CHEST_PAIN';
               appState.complaint.location = 'chest';
             } else if (
@@ -179,19 +208,66 @@ export function renderChiefComplaintScreen() {
               lower.includes('मळमळ') ||
               lower.includes('पोट') ||
               lower.includes('पेट') ||
-              lower.includes('stomach')
+              lower.includes('stomach') ||
+              lower.includes('potat') ||
+              lower.includes('pet dard') ||
+              lower.includes('abdomen')
             ) {
               appState.complaint.id = 'STOMACH';
               appState.complaint.location = 'abdomen';
-            } else if (lower.includes('ताप') || lower.includes('बुखार') || lower.includes('fever')) {
+            } else if (
+              lower.includes('ताप') ||
+              lower.includes('बुखार') ||
+              lower.includes('fever') ||
+              lower.includes('taap') ||
+              lower.includes('bukhar') ||
+              lower.includes('temperature') ||
+              lower.includes('garam')
+            ) {
               appState.complaint.id = 'FEVER';
-            } else if (lower.includes('खोकला') || lower.includes('खांसी') || lower.includes('cough')) {
+            } else if (
+              lower.includes('खोकला') ||
+              lower.includes('खांसी') ||
+              lower.includes('cough') ||
+              lower.includes('khokla') ||
+              lower.includes('khansi') ||
+              lower.includes('cold') ||
+              lower.includes('सर्दी') ||
+              lower.includes('sardi')
+            ) {
               appState.complaint.id = 'COUGH';
-            } else if (lower.includes('श्वास') || lower.includes('सांस') || lower.includes('breath')) {
+            } else if (
+              lower.includes('श्वास') ||
+              lower.includes('सांस') ||
+              lower.includes('breath') ||
+              lower.includes('shwas') ||
+              lower.includes('saans') ||
+              lower.includes('asthma') ||
+              lower.includes('दम')
+            ) {
               appState.complaint.id = 'BREATHING';
-            } else if (lower.includes('डोके') || lower.includes('सिर') || lower.includes('head')) {
+            } else if (
+              lower.includes('डोके') ||
+              lower.includes('सिर') ||
+              lower.includes('head') ||
+              lower.includes('doke') ||
+              lower.includes('sir dard') ||
+              lower.includes('sar dard') ||
+              lower.includes('माथा')
+            ) {
               appState.complaint.id = 'HEADACHE';
               appState.complaint.location = 'head';
+            } else if (
+              lower.includes('गोळी') ||
+              lower.includes('गोळ्या') ||
+              lower.includes('औषध') ||
+              lower.includes('दवा') ||
+              lower.includes('दवाई') ||
+              lower.includes('medicine') ||
+              lower.includes('tablet') ||
+              lower.includes('prescription')
+            ) {
+              appState.complaint.id = 'MEDICATION';
             } else {
               appState.complaint.id = 'OTHER';
             }

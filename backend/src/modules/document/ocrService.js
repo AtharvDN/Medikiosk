@@ -51,7 +51,9 @@ export class OCRService {
       lowerName.includes('poor_quality') ||
       lowerName.includes('blurry') ||
       lowerName.includes('unreadable') ||
-      lowerName.includes('non_medical')
+      lowerName.includes('non_medical') ||
+      lowerName.includes('blank') ||
+      rawBuffer.length < 150
     ) {
       return {
         success: false,

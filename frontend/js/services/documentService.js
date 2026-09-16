@@ -38,6 +38,8 @@ class DocumentService {
             ocrText: d.ocrText,
             extractedData: d.extractedData,
             confidence: d.confidence,
+            ocrMode: fileInfo.ocrMode || 'ANALYZE',
+            processingStatus: d.processingStatus || (fileInfo.ocrMode === 'ORIGINAL_ONLY' ? 'BYPASSED' : 'PROCESSED'),
             isDemoData: false,
           };
         } else if (uploadRes && !uploadRes.success) {
@@ -71,7 +73,7 @@ class DocumentService {
       type: fileInfo.type || 'PRESCRIPTION',
       fileSizeBytes: fileInfo.size || 1024,
       mimeType: fileInfo.type === 'image' ? 'image/jpeg' : 'text/plain',
-      ocrText: fileInfo.base64 ? Buffer.from(fileInfo.base64, 'base64').toString('utf8') : '',
+      ocrText: fileInfo.ocrMode === 'ORIGINAL_ONLY' ? null : (fileInfo.base64 ? Buffer.from(fileInfo.base64, 'base64').toString('utf8') : ''),
       extractedData: {
         documentType: fileInfo.type || 'OTHER',
         medications: [],
@@ -79,6 +81,8 @@ class DocumentService {
         labResults: [],
       },
       confidence: 0.0,
+      ocrMode: fileInfo.ocrMode || 'ANALYZE',
+      processingStatus: fileInfo.ocrMode === 'ORIGINAL_ONLY' ? 'BYPASSED' : 'PROCESSED',
       isDemoData: true,
     };
   }

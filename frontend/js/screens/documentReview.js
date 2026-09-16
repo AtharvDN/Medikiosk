@@ -8,12 +8,16 @@ import { appState, notifyStateChange } from '../state.js';
 import { router } from '../router.js';
 import { documentService } from '../services/documentService.js';
 import { MOCK_PRESET_DOCUMENTS } from '../mock/mockDocuments.js';
+import { speechService } from '../services/speechService.js';
+import { audioController } from '../audio.js';
+import { ttsService } from '../services/ttsService.js';
 
 let selectedDocType = 'PRESCRIPTION';
 let selectedOcrMode = 'ANALYZE';
 let isProcessing = false;
 let processingStage = '';
 let uploadError = null;
+let voiceNotice = null;
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -29,16 +33,21 @@ export function renderDocumentReviewScreen() {
 
   // 1. Processing Stage State
   if (isProcessing) {
-    const stageLabel = t(processingStage || 'readingDoc', lang) || 'Analyzing document...';
+    const isBypass = selectedOcrMode === 'ORIGINAL_ONLY';
+    const stageLabel = isBypass
+      ? 'Saving Original Document (OCR Bypassed)...'
+      : (t(processingStage || 'readingDoc', lang) || 'Analyzing document...');
     return {
       html: `
         <div class="screen-card" style="text-align: center; align-items: center; padding: 4rem 2rem; max-width: 800px; margin: 0 auto;">
-          <div style="font-size: 3.5rem; margin-bottom: 1.5rem; color: var(--primary);" aria-hidden="true">🔍</div>
-          <h2 class="kiosk-question-title" style="color: var(--primary);">${t('analyzingDoc', lang) || 'Scanning Document...'}</h2>
+          <div style="font-size: 3.5rem; margin-bottom: 1.5rem; color: var(--primary);" aria-hidden="true">${isBypass ? '📎' : '🔍'}</div>
+          <h2 class="kiosk-question-title" style="color: var(--primary);">${isBypass ? 'Saving Document (OCR Bypassed)...' : (t('analyzingDoc', lang) || 'Scanning Document...')}</h2>
           <div style="font-size: var(--font-size-md); color: var(--teal); font-weight: 700; margin-top: 1rem;">
             ● ${stageLabel}
           </div>
-          <p style="font-size: var(--font-size-sm); color: var(--muted-text); margin-top: 0.5rem;">Running sovereign PaddleOCR & medical entity extraction</p>
+          <p style="font-size: var(--font-size-sm); color: var(--muted-text); margin-top: 0.5rem;">
+            ${isBypass ? 'OCR Bypassed — Original document stored safely without text extraction.' : 'Running sovereign PaddleOCR & medical entity extraction'}
+          </p>
         </div>
       `,
       attachEvents: () => {},
@@ -60,8 +69,10 @@ export function renderDocumentReviewScreen() {
                 <div style="font-weight: 800; font-size: var(--font-size-base); color: var(--primary);">${escapeHtml(doc.name)}</div>
                 <div style="font-size: var(--font-size-xs); color: var(--muted-text); margin-top: 0.15rem;">
                   ${escapeHtml(doc.type)} • ${((doc.fileSizeBytes || 1048576) / 1024 / 1024).toFixed(1)} MB
-                  • <span style="color: var(--teal); font-weight: 700;">✓ Scanned by PaddleOCR</span>
-                  ${doc.confidence ? ` • Confidence: ${(doc.confidence * 100).toFixed(0)}%` : ''}
+                  • ${doc.ocrMode === 'ORIGINAL_ONLY' || doc.processingStatus === 'BYPASSED' || !doc.ocrText
+                    ? '<span style="color: var(--teal); font-weight: 700;">📎 Saved Original (OCR Bypassed)</span>'
+                    : '<span style="color: var(--teal); font-weight: 700;">✓ Scanned by PaddleOCR</span>'}
+                  ${doc.confidence && doc.ocrMode !== 'ORIGINAL_ONLY' ? ` • Confidence: ${(doc.confidence * 100).toFixed(0)}%` : ''}
                 </div>
               </div>
             </div>
@@ -187,19 +198,28 @@ export function renderDocumentReviewScreen() {
         </div>
       </div>
 
-      <!-- OCR Mode Option: Full OCR vs Original Only -->
+      <!-- OCR Mode Option: Full OCR vs Original Only + Voice Command -->
       <div style="margin-bottom: 1.25rem;">
         <div style="font-size: var(--font-size-xs); font-weight: 700; color: var(--muted-text); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5rem;">
           Document Processing Option:
         </div>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
           <button id="btn-mode-analyze" type="button" class="btn ${selectedOcrMode === 'ANALYZE' ? 'btn-primary' : 'btn-secondary'}" style="padding: 6px 14px; font-size: 13px; border-radius: var(--radius-md);">
             🔍 Upload & Analyze (OCR Extraction)
           </button>
           <button id="btn-mode-original" type="button" class="btn ${selectedOcrMode === 'ORIGINAL_ONLY' ? 'btn-primary' : 'btn-secondary'}" style="padding: 6px 14px; font-size: 13px; border-radius: var(--radius-md);">
             📎 Upload Original Only (Bypass OCR)
           </button>
+          <button id="btn-docreview-voice" type="button" class="btn btn-secondary" style="padding: 6px 14px; font-size: 13px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 6px;" title="Voice Command: Speak 'Bypass OCR' or 'Scan with OCR'">
+            <span>🎙️</span>
+            <span id="docreview-voice-label">Speak Command</span>
+          </button>
         </div>
+        ${voiceNotice ? `
+          <div style="margin-top: 0.5rem; font-size: var(--font-size-xs); color: var(--teal); font-weight: 700;">
+            ✓ ${escapeHtml(voiceNotice)}
+          </div>
+        ` : ''}
       </div>
 
       <!-- Kiosk Healthcare Scanning Dropzone -->
@@ -328,10 +348,13 @@ export function renderDocumentReviewScreen() {
         router.renderCurrentScreen();
 
         const preset = MOCK_PRESET_DOCUMENTS[appState.documents.length % MOCK_PRESET_DOCUMENTS.length];
-        const processed = await documentService.processDocument(preset, (stage) => {
-          processingStage = stage;
-          router.renderCurrentScreen();
-        });
+        const processed = await documentService.processDocument(
+          { ...preset, ocrMode: selectedOcrMode },
+          (stage) => {
+            processingStage = stage;
+            router.renderCurrentScreen();
+          }
+        );
 
         isProcessing = false;
         if (processed && !processed.isFailed && processed.success !== false) {
@@ -341,6 +364,56 @@ export function renderDocumentReviewScreen() {
           uploadError = processed?.message || "Could not read this document clearly.";
         }
         router.renderCurrentScreen();
+      });
+
+      // Voice Command for Screen 9
+      document.getElementById('btn-docreview-voice')?.addEventListener('click', () => {
+        ttsService.stop();
+        if (speechService.isListening()) {
+          speechService.stopListening();
+          return;
+        }
+
+        const voiceBtn = document.getElementById('btn-docreview-voice');
+        const voiceLabel = document.getElementById('docreview-voice-label');
+
+        speechService.startListening(appState.language, ({ status, transcript, error, message }) => {
+          if (status === 'LISTENING') {
+            if (voiceBtn) voiceBtn.classList.add('listening');
+            if (voiceLabel) voiceLabel.textContent = 'Listening...';
+            return;
+          }
+
+          if (status === 'PROCESSING' || status === 'TRANSCRIBING') {
+            if (voiceLabel) voiceLabel.textContent = 'Processing...';
+            return;
+          }
+
+          if ((status === 'RECOGNIZED' || status === 'SUCCESS') && transcript) {
+            const lower = transcript.toLowerCase();
+            console.info('[DocReview Voice Command]', transcript);
+
+            if (/bypass|no ocr|original|skip ocr|nako|nahi|नाही|नको|ओसीआर नको|ओसीआर नहीं|बायपास/i.test(lower)) {
+              selectedOcrMode = 'ORIGINAL_ONLY';
+              voiceNotice = 'OCR Bypassed: Uploading original documents only without text scan.';
+            } else if (/analyze|scan|ocr|extract|स्कॅन|ओसीआर करा|ओसीआर करो/i.test(lower)) {
+              selectedOcrMode = 'ANALYZE';
+              voiceNotice = 'OCR Enabled: Will scan and extract clinical text.';
+            } else if (/continue|done|finish|next|skip|पुढे|आगे|हो गया/i.test(lower)) {
+              router.navigate('patientReview');
+              return;
+            } else {
+              voiceNotice = `Heard: "${transcript}" (Tap buttons to select mode)`;
+            }
+
+            if (voiceBtn) voiceBtn.classList.remove('listening');
+            router.renderCurrentScreen();
+            return;
+          }
+
+          if (voiceBtn) voiceBtn.classList.remove('listening');
+          if (voiceLabel) voiceLabel.textContent = 'Speak Command';
+        });
       });
 
       // Remove Doc Buttons

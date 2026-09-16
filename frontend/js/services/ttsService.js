@@ -480,6 +480,7 @@ export class NeuralTTSProvider {
     this.fallback = fallbackProvider || new BrowserTTSProvider();
     this.currentAudio = null;
     this.lastDiagnostics = null;
+    this.clientAudioCache = new Map();
   }
 
   async speak(arg1, arg2 = 'mr', arg3 = {}) {
@@ -504,6 +505,55 @@ export class NeuralTTSProvider {
     const requestId = options.requestId || `tts-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     this.activeRequestId = requestId;
 
+    // 1. Instant Playback from Client-Side Audio Cache (0ms latency)
+    const cacheKey = `${language}:${text.trim()}`;
+    if (this.clientAudioCache.has(cacheKey)) {
+      const cached = this.clientAudioCache.get(cacheKey);
+      this.stop();
+      const audio = new Audio(cached.audioSrc);
+      this.currentAudio = audio;
+      console.log(`[TTS] [${requestId}] Instant playback from client audio cache (${language})`);
+
+      return new Promise((resolve) => {
+        audio.onended = () => {
+          if (this.currentAudio === audio) {
+            this.currentAudio = null;
+          }
+          resolve({
+            success: true,
+            provider: 'client-cache',
+            model: cached.model || 'neural-tts',
+            requestId,
+            cached: true,
+          });
+        };
+
+        audio.onerror = async () => {
+          if (this.currentAudio === audio) {
+            this.currentAudio = null;
+          }
+          if (this.fallback) {
+            const fbRes = await this.fallback.speak(text, language, options);
+            resolve(fbRes);
+          } else {
+            resolve({ success: false, error: 'AUDIO_PLAYBACK_FAILED', requestId });
+          }
+        };
+
+        audio.play().catch(async (playErr) => {
+          if (this.currentAudio === audio) {
+            this.currentAudio = null;
+          }
+          if (this.fallback) {
+            const fbRes = await this.fallback.speak(text, language, options);
+            resolve(fbRes);
+          } else {
+            resolve({ success: false, error: 'AUDIO_PLAYBACK_FAILED', message: playErr.message, requestId });
+          }
+        });
+      });
+    }
+
     try {
       this.stop();
 
@@ -520,10 +570,6 @@ export class NeuralTTSProvider {
       });
 
       if (!res.ok) {
-        console.warn(`[NeuralTTS Provider] Backend returned HTTP ${res.status}. Falling back to browser speech synthesis.`);
-        if (this.fallback) {
-          return await this.fallback.speak(text, language, options);
-        }
         return {
           success: false,
           error: 'TTS_RUNTIME_UNAVAILABLE',
@@ -538,10 +584,7 @@ export class NeuralTTSProvider {
       }
 
       if (!data.success || !data.data?.audioBase64) {
-        console.warn(`[NeuralTTS Provider] Speech synthesis unavailable (${data.error || 'NO_AUDIO'}). Falling back to browser speech synthesis.`);
-        if (this.fallback) {
-          return await this.fallback.speak(text, language, options);
-        }
+        console.warn(`[NeuralTTS Provider] Speech synthesis unavailable (${data.error || 'NO_AUDIO'}). Request ID: ${requestId}`);
         return {
           success: false,
           error: data.error || 'TTS_FAILED',
@@ -559,6 +602,14 @@ export class NeuralTTSProvider {
       const format = data.data.format || 'wav';
       const mime = format === 'wav' ? 'audio/wav' : 'audio/mpeg';
       const audioSrc = `data:${mime};base64,${data.data.audioBase64}`;
+
+      // Store in client-side cache for future zero-latency instant replays
+      if (this.clientAudioCache.size > 150) {
+        const oldestKey = this.clientAudioCache.keys().next().value;
+        this.clientAudioCache.delete(oldestKey);
+      }
+      this.clientAudioCache.set(cacheKey, { audioSrc, format, model: data.data?.model });
+
       const audio = new Audio(audioSrc);
       this.currentAudio = audio;
 
@@ -579,37 +630,24 @@ export class NeuralTTSProvider {
           });
         };
 
-        audio.onerror = async (err) => {
+        audio.onerror = (err) => {
           console.warn(`[NeuralTTS Provider] [${requestId}] Audio playback error:`, err);
           if (this.currentAudio === audio) {
             this.currentAudio = null;
           }
-          if (this.fallback) {
-            const fbRes = await this.fallback.speak(text, language, options);
-            resolve(fbRes);
-          } else {
-            resolve({ success: false, error: 'AUDIO_PLAYBACK_FAILED', requestId });
-          }
+          resolve({ success: false, error: 'AUDIO_PLAYBACK_FAILED', requestId });
         };
 
-        audio.play().catch(async (playErr) => {
+        audio.play().catch((playErr) => {
           console.warn(`[NeuralTTS Provider] [${requestId}] Audio play error:`, playErr);
           if (this.currentAudio === audio) {
             this.currentAudio = null;
           }
-          if (this.fallback) {
-            const fbRes = await this.fallback.speak(text, language, options);
-            resolve(fbRes);
-          } else {
-            resolve({ success: false, error: 'AUDIO_PLAYBACK_FAILED', message: playErr.message, requestId });
-          }
+          resolve({ success: false, error: 'AUDIO_PLAYBACK_FAILED', message: playErr.message, requestId });
         });
       });
     } catch (err) {
-      console.warn(`[NeuralTTS Provider] [${requestId}] Neural server speech error: ${err.message}. Engaging browser fallback.`);
-      if (this.fallback) {
-        return await this.fallback.speak(text, language, options);
-      }
+      console.warn(`[NeuralTTS Provider] [${requestId}] Neural server speech error: ${err.message}`);
       return { success: false, error: 'TTS_RUNTIME_UNAVAILABLE', message: err.message, requestId };
     }
   }

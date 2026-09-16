@@ -103,6 +103,7 @@ class AudioController {
     if (this._muted) {
       return { success: false, reason: 'muted' };
     }
+    this.playChime();
     return await ttsService.speak(text, lang);
   }
 

@@ -105,13 +105,11 @@ async def synthesize_edge_tts(text: str, language: str = "mr", sample_rate: int 
     if proc.returncode != 0:
         raise RuntimeError(f"FFmpeg conversion failed: {proc.stderr.decode('utf-8', errors='ignore')}")
 
-    import soundfile as sf
-    buf_in = io.BytesIO(proc.stdout)
-    audio_data, sr = sf.read(buf_in)
-    buf_out = io.BytesIO()
-    sf.write(buf_out, audio_data, sr, format="WAV", subtype="PCM_16")
+    wav_bytes = proc.stdout
+    if not wav_bytes or len(wav_bytes) < 44:
+        raise RuntimeError("FFmpeg generated invalid WAV audio")
 
-    return buf_out.getvalue(), f"edge-neural-tts ({voice})"
+    return wav_bytes, f"edge-neural-tts ({voice})"
 
 def synthesize_mms_tts(text: str, language: str = "mr", sample_rate: int = 24000) -> tuple[bytes, str]:
     import torch
@@ -156,6 +154,8 @@ def synthesize_mms_tts(text: str, language: str = "mr", sample_rate: int = 24000
 
     return wav_bytes, f"meta-mms-tts ({model_id})"
 
+_TTS_MEMORY_CACHE = {}
+
 def synthesize_speech(text: str, language: str = "mr", sample_rate: int = 24000) -> tuple[bytes, str]:
     clean_text = text.strip()
     if not clean_text:
@@ -165,14 +165,24 @@ def synthesize_speech(text: str, language: str = "mr", sample_rate: int = 24000)
     if lang not in ("mr", "hi", "en"):
         lang = "mr"
 
+    cache_key = (clean_text, lang, sample_rate)
+    if cache_key in _TTS_MEMORY_CACHE:
+        return _TTS_MEMORY_CACHE[cache_key]
+
     try:
-        return asyncio.run(synthesize_edge_tts(clean_text, lang, sample_rate))
+        result = asyncio.run(synthesize_edge_tts(clean_text, lang, sample_rate))
     except Exception as edge_err:
         print(f"[TTS Service] Edge-TTS notice: {edge_err}. Using local MMS-TTS.")
         try:
-            return synthesize_mms_tts(clean_text, lang, sample_rate)
+            result = synthesize_mms_tts(clean_text, lang, sample_rate)
         except Exception as mms_err:
             raise RuntimeError(f"Both Edge-TTS ({edge_err}) and MMS-TTS ({mms_err}) failed")
+
+    if len(_TTS_MEMORY_CACHE) > 200:
+        first_key = next(iter(_TTS_MEMORY_CACHE))
+        del _TTS_MEMORY_CACHE[first_key]
+    _TTS_MEMORY_CACHE[cache_key] = result
+    return result
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True

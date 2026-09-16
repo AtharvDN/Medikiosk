@@ -32,9 +32,9 @@ class TTSService {
     }
 
     const cleanText = text.trim();
-    const cacheKey = questionId ? `${questionId}_${language}` : null;
+    const cacheKey = questionId ? `${questionId}_${language}` : `${language}_${cleanText}`;
 
-    // 1. Check in-memory cache for repeated static questions
+    // 1. Check in-memory cache for repeated static questions & UI prompts
     if (cacheKey && this.config.cacheEnabled && this.audioCache.has(cacheKey)) {
       const cached = this.audioCache.get(cacheKey);
       return {
@@ -81,6 +81,10 @@ class TTSService {
     }
 
     if (result.success && result.audioBuffer && cacheKey && this.config.cacheEnabled) {
+      if (this.audioCache.size > 200) {
+        const oldestKey = this.audioCache.keys().next().value;
+        this.audioCache.delete(oldestKey);
+      }
       this.audioCache.set(cacheKey, { buffer: result.audioBuffer, format: result.format || 'wav' });
     }
 
