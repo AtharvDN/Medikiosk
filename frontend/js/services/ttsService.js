@@ -5,6 +5,10 @@
  * and gracefully falls back to Indian synthesizer voices when native voices are missing.
  */
 
+const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
+  (typeof window !== 'undefined' && (window.__MEDIKIOSK_API_URL__ || window.ENV?.VITE_API_URL)) ||
+  '/api';
+
 export class BrowserTTSProvider {
   constructor() {
     this.name = 'browser-speech-synthesis';
@@ -504,7 +508,7 @@ export class NeuralTTSProvider {
       this.stop();
 
       // Request synthesized neural audio from backend with requestId
-      const res = await fetch('/api/voice/tts', {
+      const res = await fetch(`${API_BASE}/voice/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -516,6 +520,10 @@ export class NeuralTTSProvider {
       });
 
       if (!res.ok) {
+        console.warn(`[NeuralTTS Provider] Backend returned HTTP ${res.status}. Falling back to browser speech synthesis.`);
+        if (this.fallback) {
+          return await this.fallback.speak(text, language, options);
+        }
         return {
           success: false,
           error: 'TTS_RUNTIME_UNAVAILABLE',
@@ -530,7 +538,10 @@ export class NeuralTTSProvider {
       }
 
       if (!data.success || !data.data?.audioBase64) {
-        console.warn(`[NeuralTTS Provider] Speech synthesis unavailable (${data.error || 'NO_AUDIO'}). Request ID: ${requestId}`);
+        console.warn(`[NeuralTTS Provider] Speech synthesis unavailable (${data.error || 'NO_AUDIO'}). Falling back to browser speech synthesis.`);
+        if (this.fallback) {
+          return await this.fallback.speak(text, language, options);
+        }
         return {
           success: false,
           error: data.error || 'TTS_FAILED',
@@ -568,24 +579,37 @@ export class NeuralTTSProvider {
           });
         };
 
-        audio.onerror = (err) => {
+        audio.onerror = async (err) => {
           console.warn(`[NeuralTTS Provider] [${requestId}] Audio playback error:`, err);
           if (this.currentAudio === audio) {
             this.currentAudio = null;
           }
-          resolve({ success: false, error: 'AUDIO_PLAYBACK_FAILED', requestId });
+          if (this.fallback) {
+            const fbRes = await this.fallback.speak(text, language, options);
+            resolve(fbRes);
+          } else {
+            resolve({ success: false, error: 'AUDIO_PLAYBACK_FAILED', requestId });
+          }
         };
 
-        audio.play().catch((playErr) => {
+        audio.play().catch(async (playErr) => {
           console.warn(`[NeuralTTS Provider] [${requestId}] Audio play error:`, playErr);
           if (this.currentAudio === audio) {
             this.currentAudio = null;
           }
-          resolve({ success: false, error: 'AUDIO_PLAYBACK_FAILED', message: playErr.message, requestId });
+          if (this.fallback) {
+            const fbRes = await this.fallback.speak(text, language, options);
+            resolve(fbRes);
+          } else {
+            resolve({ success: false, error: 'AUDIO_PLAYBACK_FAILED', message: playErr.message, requestId });
+          }
         });
       });
     } catch (err) {
-      console.warn(`[NeuralTTS Provider] [${requestId}] Neural server speech error: ${err.message}`);
+      console.warn(`[NeuralTTS Provider] [${requestId}] Neural server speech error: ${err.message}. Engaging browser fallback.`);
+      if (this.fallback) {
+        return await this.fallback.speak(text, language, options);
+      }
       return { success: false, error: 'TTS_RUNTIME_UNAVAILABLE', message: err.message, requestId };
     }
   }
