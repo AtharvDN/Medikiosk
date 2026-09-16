@@ -44,7 +44,8 @@ app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 app.use(requestLogger);
 
-// API Routes
+// Root & API Health Check
+app.get('/health', (req, res) => res.status(200).json({ status: 'ok', service: 'medikiosk-api' }));
 app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/patients', patientRouter);

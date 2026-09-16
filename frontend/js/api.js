@@ -4,7 +4,9 @@
  * Production configurable for Vercel/cloud deployments without hardcoded hostnames.
  */
 
-const API_BASE = (typeof window !== 'undefined' && (window.__MEDIKIOSK_API_URL__ || window.ENV?.VITE_API_URL)) || '/api';
+const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
+  (typeof window !== 'undefined' && (window.__MEDIKIOSK_API_URL__ || window.ENV?.VITE_API_URL)) ||
+  '/api';
 
 export const api = {
   async checkHealth() {

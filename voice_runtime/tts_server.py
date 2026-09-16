@@ -33,9 +33,11 @@ PORT = int(os.environ.get("TTS_PORT", "8003"))
 
 FFMPEG_BIN = shutil.which("ffmpeg")
 if not FFMPEG_BIN:
-    winget_ffmpeg = r"C:\Users\vipul\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.2-full_build\bin\ffmpeg.EXE"
-    if os.path.exists(winget_ffmpeg):
-        FFMPEG_BIN = winget_ffmpeg
+    import glob
+    localappdata = os.environ.get("LOCALAPPDATA", "")
+    matches = glob.glob(os.path.join(localappdata, "Microsoft", "WinGet", "Packages", "**", "ffmpeg.exe"), recursive=True) if localappdata else []
+    if matches:
+        FFMPEG_BIN = matches[0]
     else:
         FFMPEG_BIN = "ffmpeg"
 

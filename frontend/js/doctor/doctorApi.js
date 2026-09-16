@@ -4,7 +4,10 @@
 
 import { doctorState, clearDoctorAuth } from './doctorState.js';
 
-const API_BASE = '/api/doctor';
+const ROOT_API = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
+  (typeof window !== 'undefined' && (window.__MEDIKIOSK_API_URL__ || window.ENV?.VITE_API_URL)) ||
+  '/api';
+const API_BASE = `${ROOT_API.replace(/\/$/, '')}/doctor`;
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;

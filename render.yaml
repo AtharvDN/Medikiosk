@@ -1,0 +1,33 @@
+# ==============================================================================
+# Render Blueprint Specification for MediKiosk (Code2Cure - SIH26047)
+# Automatically builds and deploys the production Docker service on Render
+# ==============================================================================
+
+services:
+  - type: web
+    name: medikiosk-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_URL
+        value: https://code2cure.vercel.app
+      - key: AI_MODE
+        value: mock
+      - key: ASR_PROVIDER
+        value: indicconformer
+      - key: TTS_PROVIDER
+        value: neural-tts
