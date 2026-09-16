@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 echo "=================================================="
@@ -25,7 +25,7 @@ cleanup() {
   kill -TERM "$VOICE_PID" 2>/dev/null || true
   exit 0
 }
-trap cleanup SIGINT SIGTERM
+trap cleanup INT TERM
 
 # 4. Launch Node.js Express REST API Server on platform $PORT
 echo "[Backend API] Launching Express REST API on port ${PORT:-5000}..."
